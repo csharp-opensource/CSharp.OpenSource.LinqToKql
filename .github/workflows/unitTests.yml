@@ -1,0 +1,14 @@
+name: Unit Tests
+
+on: [push, pull_request]
+
+jobs:
+  UnitTests:
+    runs-on: ubuntu-latest
+    name: Unit Tests
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run unit tests
+      run: dotnet test ./CSharp.OpenSource.LinqToKql.Test
