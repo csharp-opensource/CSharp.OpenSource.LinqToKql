@@ -133,4 +133,11 @@ public class LinqToKQLQueryTranslatorTests
             _q.GroupBy(x => x.Date).Select(g => new { Date = g.Key, Count = g.Count() }),
             [_tableName, "summarize Count=count() by Date", "project Date, Count"]
         );
+
+    [Fact]
+    public void Translate_ShouldHandleSelectWithInit()
+        => AssertQuery(
+            _q.Select(x => new SampleObject2 { Name2 = x.Name, Id2 = x.Id }),
+            [_tableName, "project Name2 = Name, Id2 = Id"]
+        );
 }

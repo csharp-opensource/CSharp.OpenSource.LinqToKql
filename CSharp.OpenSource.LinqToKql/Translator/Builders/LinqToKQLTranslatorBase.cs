@@ -21,12 +21,12 @@ public abstract class LinqToKQLTranslatorBase
         }
         if (expression is LambdaExpression lambda)
         {
-            if (lambda.Body is MemberExpression member)
-            {
-                return member.Member.Name;
-            }
+            expression = lambda.Body;
         }
-
+        if (expression is MemberExpression member) 
+        {
+            return member.Member.Name;
+        }
         throw new NotSupportedException($"{GetType().Name} - Unsupported expression type.");
     }
 

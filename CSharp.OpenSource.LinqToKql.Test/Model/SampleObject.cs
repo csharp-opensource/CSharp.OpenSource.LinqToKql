@@ -13,3 +13,9 @@ public class SampleObject
     public string Type { get; set; }
     public long Value { get; set; }
 }
+
+public class SampleObject2
+{
+    public int Id2 { get; set; }
+    public string Name2 { get; set; }
+}

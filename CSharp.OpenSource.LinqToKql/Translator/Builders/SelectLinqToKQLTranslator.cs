@@ -19,7 +19,7 @@ public class SelectLinqToKQLTranslator : LinqToKQLTranslatorBase
     {
         return expression switch
         {
-            MemberInitExpression memberInitExpression => Build(memberInitExpression.NewExpression),
+            MemberInitExpression memberInitExpression => string.Join(", ", memberInitExpression.Bindings.Select(x => $"{x.Member.Name} = {GetMemberName(((MemberAssignment)x).Expression)}")),
             NewExpression newExpr => string.Join(", ", newExpr.Members!.Select(m => m.Name)),
             MemberExpression member => member.Member.Name,
             _ => throw new NotSupportedException($"{GetType().Name} - Expression type {expression.GetType()} is not supported, expression={expression}."),
