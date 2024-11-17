@@ -19,10 +19,12 @@ public class WhereLinqToKQLTranslator : LinqToKQLTranslatorBase
     private string Build(Expression expression)
         => expression switch
         {
+            MethodCallExpression methodCall when methodCall.Method.Name == nameof(string.Contains) => $"{Build(methodCall.Arguments[1])} has {Build(methodCall.Arguments[0])}",
             UnaryExpression unaryExpression when unaryExpression.NodeType == ExpressionType.Not => $"!({Build(unaryExpression.Operand)})",
             BinaryExpression binary => BuildBinaryOperation(binary),
             MemberExpression member when member.Expression is ConstantExpression c => GetValue(c, member),
             MemberExpression member => member.Member.Name!,
+            NewArrayExpression newArrayExpression => $"({string.Join(", ", newArrayExpression.Expressions.Select(Build))})",
             NewExpression newExpression => GetValue(Expression.Lambda(newExpression).Compile().DynamicInvoke()),
             ConstantExpression constant => GetValue(constant.Value),
             _ => throw new NotSupportedException($"Expression type {expression.GetType()} is not supported."),

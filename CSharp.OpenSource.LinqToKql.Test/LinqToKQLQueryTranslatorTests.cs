@@ -37,6 +37,13 @@ public class LinqToKQLQueryTranslatorTests
         );
 
     [Fact]
+    public void Translate_ShouldHandleWhereWitContains()
+        => AssertQuery(
+            _q.Where(x => new string[] { "name1", "name2", "name3" }.Contains(x.Name)),
+            [_tableName, "where Name has ('name1', 'name2', 'name3')"]
+        );
+
+    [Fact]
     public void Translate_ShouldHandleWhereWithAnd()
         => AssertQuery(
             _q.Where(x => x.Id > 1 && x.Id == 3),
