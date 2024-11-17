@@ -19,6 +19,7 @@ public class WhereLinqToKQLTranslator : LinqToKQLTranslatorBase
     private string Build(Expression expression)
         => expression switch
         {
+            UnaryExpression unaryExpression when unaryExpression.NodeType == ExpressionType.Not => $"!({Build(unaryExpression.Operand)})",
             BinaryExpression binary => BuildBinaryOperation(binary),
             MemberExpression member when member.Expression is ConstantExpression c => GetValue(c, member),
             MemberExpression member => member.Member.Name!,

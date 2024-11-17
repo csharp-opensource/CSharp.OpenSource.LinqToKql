@@ -30,6 +30,27 @@ public class LinqToKQLQueryTranslatorTests
         );
 
     [Fact]
+    public void Translate_ShouldHandleWhereWithOr()
+        => AssertQuery(
+            _q.Where(x => x.Id > 1 || x.Id == 3),
+            [_tableName, "where Id > 1 or Id == 3"]
+        );
+
+    [Fact]
+    public void Translate_ShouldHandleWhereWithAnd()
+        => AssertQuery(
+            _q.Where(x => x.Id > 1 && x.Id == 3),
+            [_tableName, "where Id > 1 and Id == 3"]
+        );
+
+    [Fact]
+    public void Translate_ShouldHandleWhereWithNot()
+        => AssertQuery(
+            _q.Where(x => !(x.Id > 1 && x.Id == 8)),
+            [_tableName, "where !(Id > 1 and Id == 8)"]
+        );
+
+    [Fact]
     public void Translate_WhereDateTime()
     {
         AssertQuery(
