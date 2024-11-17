@@ -17,8 +17,13 @@ public class LinqToKQLQueryTranslator
 
     public string Translate<T>(IQueryable<T> query, string tableName)
     {
+        return Translate(query.Expression, tableName);
+    }
+
+    public string Translate(Expression expression, string tableName)
+    {
         var kqlBuilder = new StringBuilder(tableName);
-        TranslateExpression(query.Expression, kqlBuilder, null);
+        TranslateExpression(expression, kqlBuilder, null);
         return kqlBuilder.ToString();
     }
 
