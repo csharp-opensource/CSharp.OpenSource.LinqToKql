@@ -14,9 +14,9 @@ jobs:
         uses: actions/setup-dotnet@v4
 
       - name: Nuget Package And Upload
-        uses: actions-opensource/publish-nuget@v1
+        uses: actions-opensource/publish-nuget@v3
         with:
-          path: CSharp.OpenSource.LinqToKql
+          path: ./CSharp.OpenSource.LinqToKql
           releaseVersion: ${{ github.event.release.tag_name }}
           repoUrl: ${{ github.server_url }}/${{ github.repository }}
           nugetToken: ${{secrets.NUGET_AUTH_TOKEN}}
