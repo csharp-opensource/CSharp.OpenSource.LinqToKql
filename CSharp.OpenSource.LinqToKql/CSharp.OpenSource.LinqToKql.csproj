@@ -8,6 +8,7 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageId>CSharp.OpenSource.LinqToKql</PackageId>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
