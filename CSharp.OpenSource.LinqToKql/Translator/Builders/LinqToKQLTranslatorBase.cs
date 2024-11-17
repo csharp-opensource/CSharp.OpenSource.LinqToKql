@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace CSharp.OpenSource.LinqToKql.Builders;
+namespace CSharp.OpenSource.LinqToKql.Translator.Builders;
 
 public abstract class LinqToKQLTranslatorBase
 {

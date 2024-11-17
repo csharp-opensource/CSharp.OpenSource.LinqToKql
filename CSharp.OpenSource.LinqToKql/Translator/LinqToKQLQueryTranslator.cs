@@ -1,8 +1,8 @@
-using CSharp.OpenSource.LinqToKql.Builders;
+using CSharp.OpenSource.LinqToKql.Translator.Builders;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace CSharp.OpenSource.LinqToKql;
+namespace CSharp.OpenSource.LinqToKql.Translator;
 
 public class LinqToKQLQueryTranslator
 {
@@ -12,7 +12,7 @@ public class LinqToKQLQueryTranslator
         new GroupByLinqToKQLTranslator(),
         new OrderByLinqToKQLTranslator(),
     };
-    
+
     public string PipeWithIndentation = "\n  |  ";
 
     public string Translate<T>(IQueryable<T> query, string tableName)
@@ -33,7 +33,7 @@ public class LinqToKQLQueryTranslator
         {
             return;
         }
-        
+
         // Recursively translate the inner expression
         TranslateExpression(methodCall.Arguments[0], kqlBuilder, expression);
 

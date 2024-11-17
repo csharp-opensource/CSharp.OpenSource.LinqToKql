@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
+using System.Reflection;
 
-namespace CSharp.OpenSource.LinqToKql.Builders;
+namespace CSharp.OpenSource.LinqToKql.Translator.Builders;
 
 public class WhereLinqToKQLTranslator : LinqToKQLTranslatorBase
 {
@@ -37,8 +38,15 @@ public class WhereLinqToKQLTranslator : LinqToKQLTranslatorBase
     private string GetValue(ConstantExpression constant, MemberExpression? member)
     {
         if (member == null) { return GetValue(constant.Value); }
-        var field = constant.Type.GetField(member.Member.Name)!;
-        return GetValue(field.GetValue(constant.Value));
+        if (member.Member is FieldInfo fieldInfo)
+        {
+            return GetValue(fieldInfo.GetValue(constant.Value));
+        }
+        if (member.Member is PropertyInfo propertyInfo)
+        {
+            return GetValue(propertyInfo.GetValue(constant.Value));
+        }
+        throw new NotSupportedException($"Member type {member.Member.GetType()} is not supported.");
     }
 
     private string GetValue(NewExpression newExpression)
@@ -56,6 +64,9 @@ public class WhereLinqToKQLTranslator : LinqToKQLTranslatorBase
             ExpressionType.LessThan => "<",
             ExpressionType.GreaterThanOrEqual => ">=",
             ExpressionType.LessThanOrEqual => "<=",
+            ExpressionType.AndAlso => "and",
+            ExpressionType.OrElse => "or",
+            ExpressionType.Negate => "!",
             _ => throw new NotSupportedException($"Operator {nodeType} is not supported.")
         };
 }

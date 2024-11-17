@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace CSharp.OpenSource.LinqToKql.Builders;
+namespace CSharp.OpenSource.LinqToKql.Translator.Builders;
 
 public class OrderByLinqToKQLTranslator : LinqToKQLTranslatorBase
 {
@@ -8,10 +8,10 @@ public class OrderByLinqToKQLTranslator : LinqToKQLTranslatorBase
     {
     }
 
-    public override string Handle(MethodCallExpression methodCall, Expression? parent) 
+    public override string Handle(MethodCallExpression methodCall, Expression? parent)
     {
         return Handle(methodCall, methodCall.Method.Name == nameof(Enumerable.OrderByDescending));
-    } 
+    }
 
     public string Handle(MethodCallExpression methodCall, bool descending)
     {
