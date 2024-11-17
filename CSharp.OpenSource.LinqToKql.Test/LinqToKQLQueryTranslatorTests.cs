@@ -25,7 +25,7 @@ public class LinqToKQLQueryTranslatorTests
     public void Translate_ShouldHandleWhereAndSelect() 
         => AssertQuery(
             _q.Where(x => x.Id > 1).Select(x => new { x.Date, x.Description }),
-            ["myTable", "where Id > 1", "project Date, Description"]
+            [_tableName, "where Id > 1", "project Date, Description"]
         );
 
     [Fact]
@@ -33,12 +33,12 @@ public class LinqToKQLQueryTranslatorTests
     {
         AssertQuery(
             _q.Where(x => x.Date > new DateTime(1999, 1, 1)).Select(x => new { x.Date, x.Description }),
-            ["myTable", $"where Date > datetime({new DateTime(1999, 1, 1):yyyy-MM-dd HH:mm:ss.f})", "project Date, Description"]
+            [_tableName, $"where Date > datetime({new DateTime(1999, 1, 1):yyyy-MM-dd HH:mm:ss.f})", "project Date, Description"]
         );
         var filter = new DateTime(2000, 1, 1);
         AssertQuery(
             _q.Where(x => x.Date > filter).Select(x => new { x.Date, x.Description }),
-            ["myTable", $"where Date > datetime({filter:yyyy-MM-dd HH:mm:ss.f})", "project Date, Description"]
+            [_tableName, $"where Date > datetime({filter:yyyy-MM-dd HH:mm:ss.f})", "project Date, Description"]
         );
     }
 
@@ -48,11 +48,11 @@ public class LinqToKQLQueryTranslatorTests
         var filter = new DateOnly(2000, 1, 1);
         AssertQuery(
             _q.Where(x => x.DateOnly > filter).Select(x => new { x.Date, x.Description }),
-            ["myTable", $"where DateOnly > datetime({filter:yyyy-MM-dd})", "project Date, Description"]
+            [_tableName, $"where DateOnly > datetime({filter:yyyy-MM-dd})", "project Date, Description"]
         );
         AssertQuery(
             _q.Where(x => x.DateOnly > new DateOnly(1999, 1, 1)).Select(x => new { x.Date, x.Description }),
-            ["myTable", $"where DateOnly > datetime({new DateOnly(1999, 1, 1):yyyy-MM-dd})", "project Date, Description"]
+            [_tableName, $"where DateOnly > datetime({new DateOnly(1999, 1, 1):yyyy-MM-dd})", "project Date, Description"]
         );
     }
 
@@ -61,12 +61,12 @@ public class LinqToKQLQueryTranslatorTests
     {
         AssertQuery(
             _q.Where(x => x.Time > new TimeSpan(1, 22, 1, 1)).Select(x => new { x.Date, x.Description }),
-            ["myTable", $"where Time > timespan(1.22:01:01)", "project Date, Description"]
+            [_tableName, $"where Time > timespan(1.22:01:01)", "project Date, Description"]
         );
         var filter = new TimeSpan(2, 23, 1, 1);
         AssertQuery(
             _q.Where(x => x.Time > filter).Select(x => new { x.Date, x.Description }),
-            ["myTable", $"where Time > timespan(2.23:01:01)", "project Date, Description"]
+            [_tableName, $"where Time > timespan(2.23:01:01)", "project Date, Description"]
         );
     }
 
@@ -76,11 +76,11 @@ public class LinqToKQLQueryTranslatorTests
         var filter = new TimeOnly(23, 1, 1);
         AssertQuery(
             _q.Where(x => x.TimeOnly > filter).Select(x => new { x.Date, x.Description }),
-            ["myTable", $"where TimeOnly > timespan({filter:HH:mm:ss.f})", "project Date, Description"]
+            [_tableName, $"where TimeOnly > timespan({filter:HH:mm:ss.f})", "project Date, Description"]
         );
         AssertQuery(
             _q.Where(x => x.TimeOnly > new TimeOnly(22, 1, 1)).Select(x => new { x.Date, x.Description }),
-            ["myTable", $"where TimeOnly > timespan({new TimeOnly(22, 1, 1):HH:mm:ss.f})", "project Date, Description"]
+            [_tableName, $"where TimeOnly > timespan({new TimeOnly(22, 1, 1):HH:mm:ss.f})", "project Date, Description"]
         );
     }
 
@@ -88,20 +88,20 @@ public class LinqToKQLQueryTranslatorTests
     public void Translate_ShouldHandleOrderBy()
         => AssertQuery(
             _q.OrderBy(x => x.Date),
-            ["myTable", "sort by Date asc"]
+            [_tableName, "sort by Date asc"]
         );
 
     [Fact]
     public void Translate_ShouldHandleOrderByDesc()
         => AssertQuery(
             _q.OrderByDescending(x => x.Date),
-            ["myTable", "sort by Date desc"]
+            [_tableName, "sort by Date desc"]
         );
 
     [Fact]
     public void Translate_ShouldHandleGroupBy()
         => AssertQuery(
             _q.GroupBy(x => x.Date).Select(g => new { Date = g.Key, Count = g.Count() }),
-            ["myTable", "summarize Count=count() by Date", "project Date, Count"]
+            [_tableName, "summarize Count=count() by Date", "project Date, Count"]
         );
 }
