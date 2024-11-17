@@ -1,0 +1,5 @@
+**/bin
+**/obj
+**/.toolstarget
+**/sqlite3
+**/.vs
