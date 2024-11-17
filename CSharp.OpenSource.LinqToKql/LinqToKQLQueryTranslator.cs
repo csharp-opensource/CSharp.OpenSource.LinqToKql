@@ -18,11 +18,11 @@ public class LinqToKQLQueryTranslator
     public string Translate<T>(IQueryable<T> query, string tableName)
     {
         var kqlBuilder = new StringBuilder(tableName);
-        TranslateExpression(query.Expression, kqlBuilder);
+        TranslateExpression(query.Expression, kqlBuilder, null);
         return kqlBuilder.ToString();
     }
 
-    private void TranslateExpression(Expression expression, StringBuilder kqlBuilder)
+    private void TranslateExpression(Expression expression, StringBuilder kqlBuilder, Expression? parent)
     {
         if (expression is not MethodCallExpression methodCall)
         {
@@ -30,7 +30,7 @@ public class LinqToKQLQueryTranslator
         }
         
         // Recursively translate the inner expression
-        TranslateExpression(methodCall.Arguments[0], kqlBuilder);
+        TranslateExpression(methodCall.Arguments[0], kqlBuilder, expression);
 
         // Handle the current method call
         var translator = _translators.FirstOrDefault(t => t.LinqMethods.Contains(methodCall.Method.Name));
@@ -38,7 +38,7 @@ public class LinqToKQLQueryTranslator
         {
             throw new NotSupportedException($"Method {methodCall.Method.Name} is not supported.");
         }
-        var kql = translator.Handle(methodCall);
+        var kql = translator.Handle(methodCall, parent);
         kqlBuilder.Append($"{PipeWithIndentation}{kql}");
     }
 }

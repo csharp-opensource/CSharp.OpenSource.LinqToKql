@@ -8,7 +8,7 @@ public class OrderByLinqToKQLTranslator : LinqToKQLTranslatorBase
     {
     }
 
-    public override string Handle(MethodCallExpression methodCall) 
+    public override string Handle(MethodCallExpression methodCall, Expression? parent) 
     {
         return Handle(methodCall, methodCall.Method.Name == nameof(Enumerable.OrderByDescending));
     } 
@@ -19,17 +19,5 @@ public class OrderByLinqToKQLTranslator : LinqToKQLTranslatorBase
         var key = GetMemberName(keySelector);
         var direction = descending ? "desc" : "asc";
         return $"sort by {key} {direction}";
-    }
-
-    private string GetMemberName(Expression expression)
-    {
-        if (expression is LambdaExpression lambda)
-        {
-            if (lambda.Body is MemberExpression member)
-            {
-                return member.Member.Name;
-            }
-        }
-        throw new NotSupportedException("Unsupported expression type for OrderBy key selector.");
     }
 }

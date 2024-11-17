@@ -8,7 +8,7 @@ public class SelectLinqToKQLTranslator : LinqToKQLTranslatorBase
     {
     }
 
-    public override string Handle(MethodCallExpression methodCall)
+    public override string Handle(MethodCallExpression methodCall, Expression? parent)
     {
         var lambda = (LambdaExpression)((UnaryExpression)methodCall.Arguments[1]).Operand;
         var props = lambda.Body switch
