@@ -140,4 +140,11 @@ public class LinqToKQLQueryTranslatorTests
             _q.Select(x => new SampleObject2 { Name2 = x.Name, Id2 = x.Id }),
             [_tableName, "project Name2 = Name, Id2 = Id"]
         );
+
+    [Fact]
+    public void Translate_ShouldHandleTake()
+        => AssertQuery(
+            _q.Take(50),
+            [_tableName, "take 50"]
+        );
 }

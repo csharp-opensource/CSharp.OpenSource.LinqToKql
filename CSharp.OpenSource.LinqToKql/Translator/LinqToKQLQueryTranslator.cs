@@ -11,6 +11,7 @@ public class LinqToKQLQueryTranslator
         new WhereLinqToKQLTranslator(),
         new GroupByLinqToKQLTranslator(),
         new OrderByLinqToKQLTranslator(),
+        new TaskLinqToKQLTranslator(),
     };
 
     public string PipeWithIndentation = "\n  |  ";
