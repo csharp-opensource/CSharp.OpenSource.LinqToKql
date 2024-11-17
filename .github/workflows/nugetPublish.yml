@@ -16,6 +16,7 @@ jobs:
       - name: Nuget Package And Upload
         uses: actions-opensource/publish-nuget@v1
         with:
+          path: CSharp.OpenSource.LinqToKql
           releaseVersion: ${{ github.event.release.tag_name }}
           repoUrl: ${{ github.server_url }}/${{ github.repository }}
           nugetToken: ${{secrets.NUGET_AUTH_TOKEN}}
