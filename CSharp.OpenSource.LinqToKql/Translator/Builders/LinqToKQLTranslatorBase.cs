@@ -27,7 +27,7 @@ public abstract class LinqToKQLTranslatorBase
             }
         }
 
-        throw new NotSupportedException("Unsupported expression type for OrderBy key selector.");
+        throw new NotSupportedException($"{GetType().Name} - Unsupported expression type.");
     }
 
     protected string GetValue(object? value)

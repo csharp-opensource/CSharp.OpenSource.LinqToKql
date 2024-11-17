@@ -41,7 +41,7 @@ public class LinqToKQLQueryTranslator
         var translator = _translators.FirstOrDefault(t => t.LinqMethods.Contains(methodCall.Method.Name));
         if (translator is null)
         {
-            throw new NotSupportedException($"Method {methodCall.Method.Name} is not supported.");
+            throw new NotSupportedException($"{GetType().Name} - Method {methodCall.Method.Name} is not supported.");
         }
         var kql = translator.Handle(methodCall, parent);
         kqlBuilder.Append($"{PipeWithIndentation}{kql}");

@@ -12,14 +12,14 @@ public class GroupByLinqToKQLTranslator : LinqToKQLTranslatorBase
     {
         if (methodCall.Arguments.Count < 2)
         {
-            throw new InvalidOperationException("Method call must have at least two arguments (source, key selector). Check the LINQ expression.");
+            throw new InvalidOperationException($"{GetType().Name} - Method call must have at least two arguments (source, key selector). Check the LINQ expression.");
         }
 
         var keySelector = methodCall.Arguments[1];
         var key = GetMemberName(keySelector);
         if (key == null)
         {
-            throw new InvalidOperationException("Key selector expression is invalid or not supported.");
+            throw new InvalidOperationException($"{GetType().Name} - Key selector expression is invalid or not supported.");
         }
 
         string aggregation;
@@ -38,7 +38,7 @@ public class GroupByLinqToKQLTranslator : LinqToKQLTranslatorBase
 
             if (expression is not LambdaExpression lambda)
             {
-                throw new InvalidOperationException("Expected an inner Select method to derive the aggregation.");
+                throw new InvalidOperationException($"{GetType().Name} - Expected an inner Select method to derive the aggregation.");
             }
 
             aggregation = GetAggregation(lambda, key);
@@ -72,7 +72,7 @@ public class GroupByLinqToKQLTranslator : LinqToKQLTranslatorBase
                         }
                         if (string.IsNullOrEmpty(kql))
                         {
-                            throw new InvalidOperationException("fail to translate");
+                            throw new InvalidOperationException($"{GetType().Name} - fail to translate");
                         }
                         aggregations.Add(kql);
                     }
@@ -84,7 +84,7 @@ public class GroupByLinqToKQLTranslator : LinqToKQLTranslatorBase
                     }
                     else
                     {
-                        throw new InvalidOperationException("Unsupported expression type for aggregation.");
+                        throw new InvalidOperationException($"{GetType().Name} - Unsupported expression type for aggregation.");
                     }
                 }
                 return string.Join(", ", aggregations);
@@ -98,7 +98,7 @@ public class GroupByLinqToKQLTranslator : LinqToKQLTranslatorBase
                 }
                 else
                 {
-                    throw new InvalidOperationException("Aggregation method must operate on a member expression.");
+                    throw new InvalidOperationException($"{GetType().Name} - Aggregation method must operate on a member expression.");
                 }
             }
             else if (lambda.Body is MemberExpression member)
@@ -106,6 +106,6 @@ public class GroupByLinqToKQLTranslator : LinqToKQLTranslatorBase
                 return member.Member.Name;
             }
         }
-        throw new InvalidOperationException("Invalid aggregation selector expression");
+        throw new InvalidOperationException($"{GetType().Name} - Invalid aggregation selector expression");
     }
 }
