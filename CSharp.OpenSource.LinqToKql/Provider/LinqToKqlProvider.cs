@@ -38,7 +38,7 @@ public class LinqToKqlProvider<T> : IQueryable<T>, IQueryProvider, IOrderedQuery
         => new LinqToKqlProvider<S>(TableName, expression, ProviderExecutor);
 
     public virtual IQueryable CreateQuery(Expression expression) => Provider.CreateQuery<T>(expression);
-    protected virtual IEnumerator<T> GetGenericEnumerator() => Provider.Execute<IEnumerator<T>>(Expression);
+    protected virtual IEnumerator<T> GetGenericEnumerator() => Provider.Execute<List<T>>(Expression).GetEnumerator();
     public virtual IEnumerator<T> GetEnumerator() => GetGenericEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetGenericEnumerator();
 }

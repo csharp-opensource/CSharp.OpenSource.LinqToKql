@@ -1,7 +1,7 @@
 ﻿using CSharp.OpenSource.LinqToKql.Test.Model;
 using CSharp.OpenSource.LinqToKql.Translator;
 
-namespace CSharp.OpenSource.LinqToKql.Tests;
+namespace CSharp.OpenSource.LinqToKql.Test.Translator;
 
 public abstract class LinqToKQLQueryTranslatorBaseTest
 {

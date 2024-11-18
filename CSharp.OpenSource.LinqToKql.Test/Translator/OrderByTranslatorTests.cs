@@ -1,4 +1,4 @@
-﻿namespace CSharp.OpenSource.LinqToKql.Tests;
+﻿namespace CSharp.OpenSource.LinqToKql.Test.Translator;
 
 public class OrderByTranslatorTests : LinqToKQLQueryTranslatorBaseTest
 {

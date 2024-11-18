@@ -1,6 +1,6 @@
-﻿namespace CSharp.OpenSource.LinqToKql;
+﻿namespace CSharp.OpenSource.LinqToKql.Models;
 
-public class KustoQueryResultV1
+public class KustoQueryResultV1 : IKustoQueryResult
 {
     public List<KustoQueryResultV1Table> Tables { get; set; }
 

@@ -1,4 +1,4 @@
-﻿namespace CSharp.OpenSource.LinqToKql;
+﻿namespace CSharp.OpenSource.LinqToKql.Models;
 
 public class KustoQueryResultV2Column
 {

@@ -1,9 +1,9 @@
-﻿namespace CSharp.OpenSource.LinqToKql.Tests;
+﻿namespace CSharp.OpenSource.LinqToKql.Test.Translator;
 
 public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
 {
     [Fact]
-    public void Translate_ShouldHandleWhereAndSelect() 
+    public void Translate_ShouldHandleWhereAndSelect()
         => AssertQuery(
             _q.Where(x => x.Id > 1).Select(x => new { x.Date, x.Description }),
             [_tableName, "where Id > 1", "project Date, Description"]
