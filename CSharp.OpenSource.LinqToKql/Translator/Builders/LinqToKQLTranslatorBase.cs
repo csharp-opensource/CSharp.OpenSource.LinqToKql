@@ -24,7 +24,7 @@ public abstract class LinqToKQLTranslatorBase
             UnaryExpression unary => SelectMembers(unary.Operand),
             LambdaExpression lambda => SelectMembers(lambda.Body),
             MemberInitExpression memberInitExpression => SelectInitMembers(memberInitExpression, isAfterGroupBy),
-            NewExpression newExpr => string.Join(", ", newExpr.Members!.Select(m => m.Name)),
+            NewExpression newExpr => isAfterGroupBy ? "" : string.Join(", ", newExpr.Members!.Select(m => m.Name)),
             MemberExpression member => member.Member.Name,
             _ => throw new NotSupportedException($"{GetType().Name} - Expression type {expression.GetType()} is not supported, expression={expression}."),
         };
@@ -33,15 +33,17 @@ public abstract class LinqToKQLTranslatorBase
     private string SelectInitMembers(MemberInitExpression memberInitExpression, bool isAfterGroupBy)
     {
         var projections = new List<string>();
+        var isAllValuesEq = true;
         foreach (var binding in memberInitExpression.Bindings)
         {
             var name = binding.Member.Name;
             var value = isAfterGroupBy 
                 ? name
                 : SelectMembers(((MemberAssignment)binding).Expression);
+            isAllValuesEq &= name == value;
             projections.Add($"{name}={value}");
         }
-        return string.Join(", ", projections);
+        return isAllValuesEq ? "" : string.Join(", ", projections);
     }
 
     protected string GetArgMethod(Expression arg)

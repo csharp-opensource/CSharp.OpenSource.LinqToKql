@@ -12,11 +12,8 @@ public class SelectLinqToKQLTranslator : LinqToKQLTranslatorBase
     {
         var lambda = (LambdaExpression)((UnaryExpression)methodCall.Arguments[1]).Operand;
         var isAfterGroupBy = (methodCall.Arguments[0] as MethodCallExpression)?.Method.Name == "GroupBy";
-        if (isAfterGroupBy)
-        {
-            return "";
-        }
-        var props = SelectMembers(lambda.Body);
+        var props = SelectMembers(lambda.Body, isAfterGroupBy);
+        if (string.IsNullOrEmpty(props)) { return ""; }
         return $"project {props}";
     }
 }

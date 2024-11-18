@@ -29,13 +29,13 @@ public class GroupByTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public void Translate_ShouldHandleGroupByWithObject()
         => AssertQuery(
             _q.GroupBy(x => x.Date).Select(g => new GroupResult { Key = g.Key, Count = g.Count() }),
-            [_tableName, "summarize Key=Date, Count=count() by Date"]
+            [_tableName, "summarize Key=take_any(Date), Count=count() by Date"]
         );
 
     [Fact]
     public void Translate_ShouldHandleGroupByWithObject2()
         => AssertQuery(
             _q.Where(x => x.Id == 1).GroupBy(x => x.Date).Select(g => new GroupResult { Key = g.Key, Count = g.Count() }),
-            [_tableName, "where Id == 1", "summarize Count=count() by Date"]
+            [_tableName, "where Id == 1", "summarize Key=take_any(Date), Count=count() by Date"]
         );
 }

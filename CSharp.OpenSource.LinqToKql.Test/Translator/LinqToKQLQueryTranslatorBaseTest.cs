@@ -17,8 +17,8 @@ public abstract class LinqToKQLQueryTranslatorBaseTest
             expectedArray
         );
         // Act
-        var result = GetTranslator().Translate(queryable, _tableName);
+        var actual = GetTranslator().Translate(queryable, _tableName);
         // Assert
-        Assert.Equal(expected, result);
+        Assert.Equal(expected, actual);
     }
 }
