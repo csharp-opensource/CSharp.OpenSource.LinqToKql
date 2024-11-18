@@ -31,11 +31,4 @@ public class GroupByTranslatorTests : LinqToKQLQueryTranslatorBaseTest
             _q.GroupBy(x => x.Date).Select(g => new GroupResult { Key = g.Key, Count = g.Count() }),
             [_tableName, "summarize Key=Date, Count=count() by Date", "project Key=Key, Count=Count"]
         );
-
-    //[Fact]
-    //public void Translate_ShouldHandleGroupByWithObjectAndKeyObject()
-    //    => AssertQuery(
-    //        _q.GroupBy(x => new { x.Date, x.Description }).Select(g => new GroupResult { Key = g.Key, Count = g.Count() }),
-    //        [_tableName, "summarize Count=count() by Date, Description", "project Date, Description, Count"]
-    //    );
 }
