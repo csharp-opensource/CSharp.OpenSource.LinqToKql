@@ -14,20 +14,60 @@ public abstract class LinqToKQLTranslatorBase
     public abstract string Handle(MethodCallExpression methodCall, Expression? parent);
 
     protected string GetMemberName(Expression expression)
+        => SelectMembers(expression);
+
+    protected string SelectMembers(Expression expression, bool isAfterGroupBy = false)
     {
-        if (expression is UnaryExpression unaryExpression)
+        return expression switch
         {
-            expression = unaryExpression.Operand;
-        }
-        if (expression is LambdaExpression lambda)
+            MethodCallExpression methodCallExpression => GetArgMethod(methodCallExpression),
+            UnaryExpression unary => SelectMembers(unary.Operand),
+            LambdaExpression lambda => SelectMembers(lambda.Body),
+            MemberInitExpression memberInitExpression => SelectInitMembers(memberInitExpression, isAfterGroupBy),
+            NewExpression newExpr => string.Join(", ", newExpr.Members!.Select(m => m.Name)),
+            MemberExpression member => member.Member.Name,
+            _ => throw new NotSupportedException($"{GetType().Name} - Expression type {expression.GetType()} is not supported, expression={expression}."),
+        };
+    }
+
+    private string SelectInitMembers(MemberInitExpression memberInitExpression, bool isAfterGroupBy)
+    {
+        var projections = new List<string>();
+        foreach (var binding in memberInitExpression.Bindings)
         {
-            expression = lambda.Body;
+            var name = binding.Member.Name;
+            var value = isAfterGroupBy 
+                ? name
+                : SelectMembers(((MemberAssignment)binding).Expression);
+            projections.Add($"{name}={value}");
         }
-        if (expression is MemberExpression member) 
+        return string.Join(", ", projections);
+    }
+
+    protected string GetArgMethod(Expression arg)
+    {
+        if (arg is UnaryExpression unaryExpression)
         {
-            return member.Member.Name;
+            arg = unaryExpression.Operand;
         }
-        throw new NotSupportedException($"{GetType().Name} - Unsupported expression type.");
+        if (arg is MethodCallExpression methodCall)
+        {
+            var methodName = methodCall.Method.Name;
+            if (methodName == "Count")
+            {
+                return "count()";
+            }
+            throw new InvalidOperationException($"{GetType().Name} - fail to translate");
+        }
+        else if (arg is MemberExpression mb2)
+        {
+            var propName = mb2.Member.Name;
+            return propName;
+        }
+        else
+        {
+            throw new InvalidOperationException($"{GetType().Name} - Unsupported expression type for aggregation.");
+        }
     }
 
     protected string GetValue(object? value)

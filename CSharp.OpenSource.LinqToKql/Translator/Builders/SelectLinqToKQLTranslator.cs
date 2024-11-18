@@ -11,18 +11,7 @@ public class SelectLinqToKQLTranslator : LinqToKQLTranslatorBase
     public override string Handle(MethodCallExpression methodCall, Expression? parent)
     {
         var lambda = (LambdaExpression)((UnaryExpression)methodCall.Arguments[1]).Operand;
-        var props = Build(lambda.Body);
+        var props = SelectMembers(lambda.Body, isAfterGroupBy: (methodCall.Arguments[0] as MethodCallExpression)?.Method.Name == "GroupBy");
         return $"project {props}";
-    }
-
-    private string Build(Expression expression)
-    {
-        return expression switch
-        {
-            MemberInitExpression memberInitExpression => string.Join(", ", memberInitExpression.Bindings.Select(x => $"{x.Member.Name} = {GetMemberName(((MemberAssignment)x).Expression)}")),
-            NewExpression newExpr => string.Join(", ", newExpr.Members!.Select(m => m.Name)),
-            MemberExpression member => member.Member.Name,
-            _ => throw new NotSupportedException($"{GetType().Name} - Expression type {expression.GetType()} is not supported, expression={expression}."),
-        };
     }
 }

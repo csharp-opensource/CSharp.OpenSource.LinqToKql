@@ -1,27 +1,9 @@
 ﻿using CSharp.OpenSource.LinqToKql.Test.Model;
-using CSharp.OpenSource.LinqToKql.Translator;
 
 namespace CSharp.OpenSource.LinqToKql.Tests;
 
-public class LinqToKQLQueryTranslatorTests
+public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
 {
-    private LinqToKQLQueryTranslator GetTranslator() => new();
-    private readonly string _tableName = "myTable";
-    private readonly IQueryable<SampleObject> _q = new[] { new SampleObject { } }.AsQueryable();
-
-    private void AssertQuery<T>(IQueryable<T> queryable, string[] expectedArray)
-    {
-        var translator = GetTranslator();
-        var expected = string.Join(
-            translator.PipeWithIndentation,
-            expectedArray
-        );
-        // Act
-        var result = GetTranslator().Translate(queryable, _tableName);
-        // Assert
-        Assert.Equal(expected, result);
-    }
-
     [Fact]
     public void Translate_ShouldHandleWhereAndSelect() 
         => AssertQuery(
@@ -112,39 +94,4 @@ public class LinqToKQLQueryTranslatorTests
             [_tableName, $"where TimeOnly > timespan({new TimeOnly(22, 1, 1):HH:mm:ss.f})", "project Date, Description"]
         );
     }
-
-    [Fact]
-    public void Translate_ShouldHandleOrderBy()
-        => AssertQuery(
-            _q.OrderBy(x => x.Date),
-            [_tableName, "sort by Date asc"]
-        );
-
-    [Fact]
-    public void Translate_ShouldHandleOrderByDesc()
-        => AssertQuery(
-            _q.OrderByDescending(x => x.Date),
-            [_tableName, "sort by Date desc"]
-        );
-
-    [Fact]
-    public void Translate_ShouldHandleGroupBy()
-        => AssertQuery(
-            _q.GroupBy(x => x.Date).Select(g => new { Date = g.Key, Count = g.Count() }),
-            [_tableName, "summarize Count=count() by Date", "project Date, Count"]
-        );
-
-    [Fact]
-    public void Translate_ShouldHandleSelectWithInit()
-        => AssertQuery(
-            _q.Select(x => new SampleObject2 { Name2 = x.Name, Id2 = x.Id }),
-            [_tableName, "project Name2 = Name, Id2 = Id"]
-        );
-
-    [Fact]
-    public void Translate_ShouldHandleTake()
-        => AssertQuery(
-            _q.Take(50),
-            [_tableName, "take 50"]
-        );
 }

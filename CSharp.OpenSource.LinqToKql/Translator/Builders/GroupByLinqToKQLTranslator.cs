@@ -16,94 +16,88 @@ public class GroupByLinqToKQLTranslator : LinqToKQLTranslatorBase
         }
 
         var keySelector = methodCall.Arguments[1];
-        var key = GetMemberName(keySelector);
+        var key = SelectMembers(keySelector);
         if (key == null)
         {
             throw new InvalidOperationException($"{GetType().Name} - Key selector expression is invalid or not supported.");
         }
 
+        var aggregation = methodCall.Arguments.Count == 2
+            ? AggrigationWithTwoArgs(methodCall, parent, key)
+            : GetAggregation((methodCall.Arguments[2] as LambdaExpression)!, key);
+
+        return string.IsNullOrEmpty(aggregation)
+            ? $"summarize by {key}"
+            : $"summarize {aggregation} by {key}";
+    }
+
+    private string AggrigationWithTwoArgs(MethodCallExpression methodCall, Expression? parent, string key)
+    {
         string aggregation;
-        if (methodCall.Arguments.Count == 2)
+        Expression? expression = null;
+        if (methodCall.Object is MethodCallExpression innerSelectCall && innerSelectCall.Method.Name == nameof(Enumerable.Select))
         {
-            Expression? expression = null;
-            if (methodCall.Object is MethodCallExpression innerSelectCall && innerSelectCall.Method.Name == nameof(Enumerable.Select))
-            {
-                expression = innerSelectCall.Arguments[1] as LambdaExpression;
-            }
-            expression ??= (parent as MethodCallExpression)?.Arguments[1];
-            if (expression is UnaryExpression unaryExpression)
-            {
-                expression = unaryExpression.Operand as LambdaExpression;
-            }
-
-            if (expression is not LambdaExpression lambda)
-            {
-                throw new InvalidOperationException($"{GetType().Name} - Expected an inner Select method to derive the aggregation.");
-            }
-
-            aggregation = GetAggregation(lambda, key);
+            expression = innerSelectCall.Arguments[1];
         }
-        else
+        expression ??= (parent as MethodCallExpression)?.Arguments[1];
+        if (expression == null)
         {
-            var aggregationSelector = methodCall.Arguments[2];
-            aggregation = GetAggregation((aggregationSelector as LambdaExpression)!, key);
+            return "";
         }
-
-        return $"summarize {aggregation} by {key}";
+        aggregation = GetAggregation(expression, key);
+        return aggregation;
     }
 
     private string GetAggregation(Expression expression, string keyName)
     {
+        if (expression is UnaryExpression unary)
+        {
+            expression = unary.Operand;
+        }
         if (expression is LambdaExpression lambda)
         {
-            if (lambda.Body is NewExpression newExpression)
+            expression = lambda.Body;
+        }
+        if (expression is MemberExpression mb1)
+        {
+            return mb1.Member.Name;
+        }
+        if (expression is NewExpression newExpression)
+        {
+            var aggregations = new List<string>();
+            for (int i = 0; i < newExpression.Arguments.Count; i++)
             {
-                var aggregations = new List<string>();
-                for (int i = 0; i < newExpression.Arguments.Count; i++)
-                {
-                    var arg = newExpression.Arguments[i];
-                    if (arg is MethodCallExpression methodCall)
-                    {
-                        var methodName = methodCall.Method.Name;
-                        var kql = "";
-                        if (methodName == "Count")
-                        {
-                            kql = $"{newExpression.Members![i].Name}=count()";
-                        }
-                        if (string.IsNullOrEmpty(kql))
-                        {
-                            throw new InvalidOperationException($"{GetType().Name} - fail to translate");
-                        }
-                        aggregations.Add(kql);
-                    }
-                    else if (arg is MemberExpression member)
-                    {
-                        var propName = member.Member.Name;
-                        if (propName == "Key") { continue; }
-                        aggregations.Add($"{newExpression.Members![i].Name}={propName}");
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException($"{GetType().Name} - Unsupported expression type for aggregation.");
-                    }
-                }
-                return string.Join(", ", aggregations);
+                var arg = newExpression.Arguments[i];
+                var argName = newExpression.Members![i].Name;
+                var argValue = GetArgMethod(arg);
+                if (argValue == "Key") { continue; }
+                aggregations.Add($"{argName}={argValue}");
             }
-            else if (lambda.Body is MethodCallExpression methodCall)
+            return string.Join(", ", aggregations);
+        }
+        else if (expression is MemberInitExpression memberInit)
+        {
+            var aggregations = new List<string>();
+            foreach (var binding in memberInit.Bindings)
             {
-                var methodName = methodCall.Method.Name;
-                if (methodCall.Arguments.Count > 0 && methodCall.Arguments[0] is MemberExpression member)
-                {
-                    return $"{methodName}({member.Member.Name})";
-                }
-                else
-                {
-                    throw new InvalidOperationException($"{GetType().Name} - Aggregation method must operate on a member expression.");
-                }
+                var argName = binding.Member.Name;
+                var expresion = ((MemberAssignment)binding).Expression;
+                var argValue = GetArgMethod(expresion);
+                argValue = argValue == "Key" ? keyName : argValue;
+                aggregations.Add($"{argName}={argValue}");
             }
-            else if (lambda.Body is MemberExpression member)
+            return string.Join(", ", aggregations);
+        }
+        else if (expression is MethodCallExpression methodCall)
+        {
+            var methodName = methodCall.Method.Name;
+            if (methodCall.Arguments.Count > 0 && methodCall.Arguments[0] is MemberExpression mb3)
             {
-                return member.Member.Name;
+                return $"{methodName}({mb3.Member.Name})";
+            }
+            else
+            {
+                throw new InvalidOperationException($"{GetType().Name} - Aggregation method must operate on a member expression.");
             }
         }
         throw new InvalidOperationException($"{GetType().Name} - Invalid aggregation selector expression");
