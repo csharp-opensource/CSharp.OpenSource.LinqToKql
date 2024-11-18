@@ -83,7 +83,7 @@ public class GroupByLinqToKQLTranslator : LinqToKQLTranslatorBase
                 var argName = binding.Member.Name;
                 var expresion = ((MemberAssignment)binding).Expression;
                 var argValue = GetArgMethod(expresion);
-                argValue = argValue == "Key" ? keyName : argValue;
+                if (argValue == "Key") { continue; }
                 aggregations.Add($"{argName}={argValue}");
             }
             return string.Join(", ", aggregations);

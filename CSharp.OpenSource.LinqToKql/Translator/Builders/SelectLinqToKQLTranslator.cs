@@ -11,10 +11,12 @@ public class SelectLinqToKQLTranslator : LinqToKQLTranslatorBase
     public override string Handle(MethodCallExpression methodCall, Expression? parent)
     {
         var lambda = (LambdaExpression)((UnaryExpression)methodCall.Arguments[1]).Operand;
-        var props = SelectMembers(
-            lambda.Body,
-            isAfterGroupBy: (methodCall.Arguments[0] as MethodCallExpression)?.Method.Name == "GroupBy"
-        );
+        var isAfterGroupBy = (methodCall.Arguments[0] as MethodCallExpression)?.Method.Name == "GroupBy";
+        if (isAfterGroupBy)
+        {
+            return "";
+        }
+        var props = SelectMembers(lambda.Body);
         return $"project {props}";
     }
 }

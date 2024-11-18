@@ -45,6 +45,9 @@ public class LinqToKQLQueryTranslator
             throw new NotSupportedException($"{GetType().Name} - Method {methodCall.Method.Name} is not supported.");
         }
         var kql = translator.Handle(methodCall, parent);
-        kqlBuilder.Append($"{PipeWithIndentation}{kql}");
+        if (!string.IsNullOrEmpty(kql))
+        {
+            kqlBuilder.Append($"{PipeWithIndentation}{kql}");
+        }
     }
 }
