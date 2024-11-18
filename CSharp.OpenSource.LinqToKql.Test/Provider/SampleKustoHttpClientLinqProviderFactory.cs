@@ -15,6 +15,6 @@ public class SampleKustoHttpClientLinqProviderFactory : KustoHttpClientLinqProvi
     public IQueryable<SampleObject> SampleObjectFunction(long number)
         => CreateQuery<SampleObject>(_cluster, _auth, _dbName, $"SampleObjectFunction({number})");
 
-public IQueryable<SampleObject2> SampleObject2(long number)
+    public IQueryable<SampleObject2> SampleObject2(long number)
         => CreateQuery<SampleObject2>(_cluster, _auth, _dbName, $"SampleObject2Table");
 }
