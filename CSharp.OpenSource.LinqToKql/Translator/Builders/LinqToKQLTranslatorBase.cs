@@ -25,7 +25,7 @@ public abstract class LinqToKQLTranslatorBase
             LambdaExpression lambda => SelectMembers(lambda.Body),
             MemberInitExpression memberInitExpression => SelectInitMembers(memberInitExpression, isAfterGroupBy),
             NewExpression newExpr => isAfterGroupBy ? "" : string.Join(", ", newExpr.Members!.Select(m => m.Name)),
-            MemberExpression member => member.Member.Name,
+            MemberExpression member => member.Expression == null || member.Expression is ParameterExpression ? member.Member.Name : $"{SelectMembers(member.Expression)}.{member.Member.Name}",
             _ => throw new NotSupportedException($"{GetType().Name} - Expression type {expression.GetType()} is not supported, expression={expression}."),
         };
     }

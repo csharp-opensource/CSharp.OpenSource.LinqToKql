@@ -1,6 +1,4 @@
-﻿using CSharp.OpenSource.LinqToKql.Test.Model;
-
-namespace CSharp.OpenSource.LinqToKql.Tests;
+﻿namespace CSharp.OpenSource.LinqToKql.Tests;
 
 public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
 {

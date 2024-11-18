@@ -23,7 +23,7 @@ public class WhereLinqToKQLTranslator : LinqToKQLTranslatorBase
             UnaryExpression unaryExpression when unaryExpression.NodeType == ExpressionType.Not => $"!({Build(unaryExpression.Operand)})",
             BinaryExpression binary => BuildBinaryOperation(binary),
             MemberExpression member when member.Expression is ConstantExpression c => GetValue(c, member),
-            MemberExpression member => member.Member.Name!,
+            MemberExpression member => GetMemberName(member),
             NewArrayExpression newArrayExpression => $"({string.Join(", ", newArrayExpression.Expressions.Select(Build))})",
             NewExpression newExpression => GetValue(Expression.Lambda(newExpression).Compile().DynamicInvoke()),
             ConstantExpression constant => GetValue(constant.Value),
