@@ -25,7 +25,7 @@ public class LinqToKqlProvider<T> : IQueryable<T>, IQueryProvider, IOrderedQuery
         => Execute<object>(expression);
 
     public virtual TResult Execute<TResult>(Expression expression)
-        => ExecuteAsync<TResult>().GetAwaiter().GetResult();
+        => ExecuteAsync<TResult>(expression).GetAwaiter().GetResult();
 
     public virtual Task<TResult> ExecuteAsync<TResult>(Expression expression)
     {
@@ -39,6 +39,15 @@ public class LinqToKqlProvider<T> : IQueryable<T>, IQueryProvider, IOrderedQuery
 
     protected virtual LinqToKqlProvider<S> Clone<S>(Expression expression)
         => new LinqToKqlProvider<S>(TableName, expression, ProviderExecutor);
+        
+    public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    {
+        var results = await ExecuteAsync<T>(Expression);
+        foreach (var result in results)
+        {
+            yield return result;
+        }
+    }
 
     public virtual IQueryable CreateQuery(Expression expression) => Provider.CreateQuery<T>(expression);
     protected virtual IEnumerator<T> GetGenericEnumerator() => Provider.Execute<List<T>>(Expression).GetEnumerator();
