@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace CSharp.OpenSource.LinqToKql.Provider;
 
-public class LinqToKqlProvider<T> : IQueryable<T>, IQueryProvider, IOrderedQueryable<T>, IAsyncEnumerable<T>
+public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
 {
     protected readonly LinqToKQLQueryTranslator Translator = new();
     protected readonly string TableName;
