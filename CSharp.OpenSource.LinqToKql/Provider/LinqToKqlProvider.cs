@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace CSharp.OpenSource.LinqToKql.Provider;
 
-public class LinqToKqlProvider<T> : IQueryable<T>, IQueryProvider, IOrderedQueryable<T>
+public class LinqToKqlProvider<T> : IQueryable<T>, IQueryProvider, IOrderedQueryable<T>, IAsyncEnumerable<T>
 {
     protected readonly LinqToKQLQueryTranslator Translator = new();
     protected readonly string TableName;
@@ -25,10 +25,13 @@ public class LinqToKqlProvider<T> : IQueryable<T>, IQueryProvider, IOrderedQuery
         => Execute<object>(expression);
 
     public virtual TResult Execute<TResult>(Expression expression)
+        => ExecuteAsync<TResult>(expression).GetAwaiter().GetResult();
+
+    public virtual Task<TResult> ExecuteAsync<TResult>(Expression expression)
     {
         if (ProviderExecutor == null) { throw new InvalidOperationException("ProviderExecutor is not set."); }
         var kql = Translator.Translate(expression, TableName);
-        return ProviderExecutor.ExecuteAsync<TResult>(kql).GetAwaiter().GetResult();
+        return ProviderExecutor.ExecuteAsync<TResult>(kql);
     }
 
     public virtual IQueryable<TElement> CreateQuery<TElement>(Expression expression)
@@ -36,6 +39,15 @@ public class LinqToKqlProvider<T> : IQueryable<T>, IQueryProvider, IOrderedQuery
 
     protected virtual LinqToKqlProvider<S> Clone<S>(Expression expression)
         => new LinqToKqlProvider<S>(TableName, expression, ProviderExecutor);
+        
+    public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    {
+        var results = await ExecuteAsync<List<T>>(Expression);
+        foreach (var result in results)
+        {
+            yield return result;
+        }
+    }
 
     public virtual IQueryable CreateQuery(Expression expression) => Provider.CreateQuery<T>(expression);
     protected virtual IEnumerator<T> GetGenericEnumerator() => Provider.Execute<List<T>>(Expression).GetEnumerator();
