@@ -72,10 +72,7 @@ public abstract class LinqToKQLTranslatorBase
         foreach (var (arg, index) in newExpr.Arguments.Select((arg, index) => (arg, index)))
         {
             var member = newExpr.Members[index];
-            var argMember = arg as MemberExpression;
-            var value = argMember?.Expression == null || argMember?.Expression is ParameterExpression 
-                ? argMember.Member.Name 
-                : $"{SelectMembers(argMember.Expression)}.{argMember.Member.Name}";
+            var value = SelectMembers(arg);
             res.Add(new() { Name = member.Name, Value = value, });
         }
         return res;
