@@ -25,7 +25,7 @@ public class LinqToKqlProvider<T> : IQueryable<T>, IQueryProvider, IOrderedQuery
         => Execute<object>(expression);
 
     public virtual TResult Execute<TResult>(Expression expression)
-        => ExecuteAsync<TResult>().GetAwaitter().GetResult();
+        => ExecuteAsync<TResult>().GetAwaiter().GetResult();
 
     public virtual Task<TResult> ExecuteAsync<TResult>(Expression expression)
     {
