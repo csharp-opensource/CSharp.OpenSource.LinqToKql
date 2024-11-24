@@ -4,7 +4,7 @@ namespace CSharp.OpenSource.LinqToKql.Translator.Builders;
 
 public class OrderByLinqToKQLTranslator : LinqToKQLTranslatorBase
 {
-    public OrderByLinqToKQLTranslator() : base(new() { nameof(Enumerable.OrderBy), nameof(Enumerable.OrderByDescending) })
+    public OrderByLinqToKQLTranslator(LinqToKQLQueryTranslatorConfig config) : base(config, new() { nameof(Enumerable.OrderBy), nameof(Enumerable.OrderByDescending) })
     {
     }
 
@@ -16,7 +16,7 @@ public class OrderByLinqToKQLTranslator : LinqToKQLTranslatorBase
     public string Handle(MethodCallExpression methodCall, bool descending)
     {
         var keySelector = methodCall.Arguments[1];
-        var key = GetMemberName(keySelector);
+        var key = SelectMembers(keySelector);
         var direction = descending ? "desc" : "asc";
         return $"sort by {key} {direction}";
     }

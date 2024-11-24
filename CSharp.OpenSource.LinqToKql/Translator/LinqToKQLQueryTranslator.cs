@@ -6,15 +6,24 @@ namespace CSharp.OpenSource.LinqToKql.Translator;
 
 public class LinqToKQLQueryTranslator
 {
-    private List<LinqToKQLTranslatorBase> _translators = new List<LinqToKQLTranslatorBase> {
-        new SelectLinqToKQLTranslator(),
-        new WhereLinqToKQLTranslator(),
-        new GroupByLinqToKQLTranslator(),
-        new OrderByLinqToKQLTranslator(),
-        new TaskLinqToKQLTranslator(),
-    };
+    private List<LinqToKQLTranslatorBase> _translators;
 
-    public string PipeWithIndentation = "\n  |  ";
+    public LinqToKQLQueryTranslatorConfig Config { get; set; }
+
+    public LinqToKQLQueryTranslator(LinqToKQLQueryTranslatorConfig? config = null)
+    {
+        Config = config ?? new();
+        _translators = new()
+        {
+            new SelectLinqToKQLTranslator(Config),
+            new WhereLinqToKQLTranslator(Config),
+            new GroupByLinqToKQLTranslator(Config),
+            new OrderByLinqToKQLTranslator(Config),
+            new TaskLinqToKQLTranslator(Config),
+        };
+    }
+
+    public string PipeWithIndentation => Config.PipeWithIndentation;
 
     public string Translate<T>(IQueryable<T> query, string tableName)
     {

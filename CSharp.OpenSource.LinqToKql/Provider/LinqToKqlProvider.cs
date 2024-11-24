@@ -6,7 +6,7 @@ namespace CSharp.OpenSource.LinqToKql.Provider;
 
 public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
 {
-    protected readonly LinqToKQLQueryTranslator Translator = new();
+    protected readonly LinqToKQLQueryTranslator Translator;
     protected readonly string TableName;
     public Type ElementType => typeof(T);
     private readonly Expression _expression;
@@ -14,11 +14,17 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
     public IQueryProvider Provider => this;
     protected ILinqToKqlProviderExecutor? ProviderExecutor;
 
-    public LinqToKqlProvider(string tableName, Expression? expression, ILinqToKqlProviderExecutor? providerExecutor = null)
+    public LinqToKqlProvider(
+        string tableName,
+        Expression? expression,
+        ILinqToKqlProviderExecutor? providerExecutor = null,
+        LinqToKQLQueryTranslatorConfig? config = null)
     {
         TableName = tableName;
         _expression = expression ?? Expression.Constant(this);
         ProviderExecutor = providerExecutor;
+        config ??= new();
+        Translator = new(config);
     }
 
     public virtual object? Execute(Expression expression)
@@ -38,7 +44,7 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
         => Clone<TElement>(expression);
 
     protected virtual LinqToKqlProvider<S> Clone<S>(Expression expression)
-        => new LinqToKqlProvider<S>(TableName, expression, ProviderExecutor);
+        => new LinqToKqlProvider<S>(TableName, expression, ProviderExecutor, Translator.Config);
         
     public virtual async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {

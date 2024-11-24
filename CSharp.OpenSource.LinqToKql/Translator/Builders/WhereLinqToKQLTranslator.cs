@@ -5,7 +5,7 @@ namespace CSharp.OpenSource.LinqToKql.Translator.Builders;
 
 public class WhereLinqToKQLTranslator : LinqToKQLTranslatorBase
 {
-    public WhereLinqToKQLTranslator() : base(new() { nameof(Enumerable.Where) })
+    public WhereLinqToKQLTranslator(LinqToKQLQueryTranslatorConfig config) : base(config, new() { nameof(Enumerable.Where) })
     {
     }
 
@@ -23,7 +23,7 @@ public class WhereLinqToKQLTranslator : LinqToKQLTranslatorBase
             UnaryExpression unaryExpression when unaryExpression.NodeType == ExpressionType.Not => $"!({Build(unaryExpression.Operand)})",
             BinaryExpression binary => BuildBinaryOperation(binary),
             MemberExpression member when member.Expression is ConstantExpression c => GetValue(c, member),
-            MemberExpression member => GetMemberName(member),
+            MemberExpression member => SelectMembers(member),
             NewArrayExpression newArrayExpression => $"({string.Join(", ", newArrayExpression.Expressions.Select(Build))})",
             NewExpression newExpression => GetValue(Expression.Lambda(newExpression).Compile().DynamicInvoke()),
             ConstantExpression constant => GetValue(constant.Value),

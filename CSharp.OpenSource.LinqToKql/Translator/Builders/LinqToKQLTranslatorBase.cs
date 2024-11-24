@@ -1,20 +1,20 @@
-﻿using System.Linq.Expressions;
+﻿using CSharp.OpenSource.LinqToKql.Translator.Models;
+using System.Linq.Expressions;
 
 namespace CSharp.OpenSource.LinqToKql.Translator.Builders;
 
 public abstract class LinqToKQLTranslatorBase
 {
     public HashSet<string> LinqMethods { get; private set; }
+    protected LinqToKQLQueryTranslatorConfig Config { get; private set; }
 
-    protected LinqToKQLTranslatorBase(HashSet<string> linqMethods)
+    protected LinqToKQLTranslatorBase(LinqToKQLQueryTranslatorConfig config, HashSet<string> linqMethods)
     {
         LinqMethods = linqMethods;
+        Config = config;
     }
 
     public abstract string Handle(MethodCallExpression methodCall, Expression? parent);
-
-    protected string GetMemberName(Expression expression)
-        => SelectMembers(expression);
 
     protected string SelectMembers(Expression expression, bool isAfterGroupBy = false)
     {
@@ -24,26 +24,82 @@ public abstract class LinqToKQLTranslatorBase
             UnaryExpression unary => SelectMembers(unary.Operand),
             LambdaExpression lambda => SelectMembers(lambda.Body),
             MemberInitExpression memberInitExpression => SelectInitMembers(memberInitExpression, isAfterGroupBy),
-            NewExpression newExpr => isAfterGroupBy ? "" : string.Join(", ", newExpr.Members!.Select(m => m.Name)),
+            NewExpression newExpr => isAfterGroupBy ? "" : SelectNewExpression(newExpr),
             MemberExpression member => member.Expression == null || member.Expression is ParameterExpression ? member.Member.Name : $"{SelectMembers(member.Expression)}.{member.Member.Name}",
             _ => throw new NotSupportedException($"{GetType().Name} - Expression type {expression.GetType()} is not supported, expression={expression}."),
         };
     }
 
+    private string SelectNewExpression(NewExpression newExpr)
+    {
+        var membersWithArgs = newExpr.Arguments.Select((arg, index) => new
+        {
+            arg,
+            argName = (arg as MemberExpression)?.Member.Name,
+            member = newExpr.Members?[index],
+            memberName = newExpr.Members?[index]?.Name,
+        });
+        var res = new List<string>();
+        foreach (var item in membersWithArgs)
+        {
+            var arg = item.arg;
+            var member = item.member;
+            if (arg.NodeType == ExpressionType.MemberAccess || Config.DisableNestedProjection)
+            {
+                res.Add(item.memberName == item.argName || arg.NodeType != ExpressionType.MemberAccess ? item.memberName! : $"{item.memberName}={item.argName}");
+                continue;
+            }
+            var members = arg.NodeType switch
+            {
+                ExpressionType.MemberInit => SelectInitMembersModels(arg as MemberInitExpression, false),
+                ExpressionType.New => SelectNewMembersModels(arg as NewExpression),
+                _ => throw new NotImplementedException(""),
+            };
+            var dynamicBlock = $"{item.memberName}=dynamic({{";
+            foreach (var m in members)
+            {
+                dynamicBlock += $"\"{m.Name}\":{m.Value}";
+            }
+            dynamicBlock += "})";
+            res.Add(dynamicBlock);
+        }
+        return string.Join(", ", res);
+    }
+
+    private List<SelectMemeberModel> SelectNewMembersModels(NewExpression newExpr)
+    {
+        var res = new List<SelectMemeberModel>();
+        foreach (var (arg, index) in newExpr.Arguments.Select((arg, index) => (arg, index)))
+        {
+            var member = newExpr.Members[index];
+            var argMember = arg as MemberExpression;
+            var value = argMember?.Expression == null || argMember?.Expression is ParameterExpression 
+                ? argMember.Member.Name 
+                : $"{SelectMembers(argMember.Expression)}.{argMember.Member.Name}";
+            res.Add(new() { Name = member.Name, Value = value, });
+        }
+        return res;
+    }
+
     private string SelectInitMembers(MemberInitExpression memberInitExpression, bool isAfterGroupBy)
     {
-        var projections = new List<string>();
-        var isAllValuesEq = true;
+        var members = SelectInitMembersModels(memberInitExpression, isAfterGroupBy);
+        var isAllValuesEq = members.All(x => x.Name == x.Value);
+        return isAllValuesEq ? "" : string.Join(", ", members.Select(x => $"{x.Name}={x.Value}"));
+    }
+
+    private List<SelectMemeberModel> SelectInitMembersModels(MemberInitExpression memberInitExpression, bool isAfterGroupBy)
+    {
+        var res = new List<SelectMemeberModel>();
         foreach (var binding in memberInitExpression.Bindings)
         {
             var name = binding.Member.Name;
-            var value = isAfterGroupBy 
+            var value = isAfterGroupBy
                 ? name
                 : SelectMembers(((MemberAssignment)binding).Expression);
-            isAllValuesEq &= name == value;
-            projections.Add($"{name}={value}");
+            res.Add(new() { Name = name, Value = value });
         }
-        return isAllValuesEq ? "" : string.Join(", ", projections);
+        return res;
     }
 
     protected string GetArgMethod(Expression arg)

@@ -4,7 +4,7 @@ namespace CSharp.OpenSource.LinqToKql.Translator.Builders;
 
 public class GroupByLinqToKQLTranslator : LinqToKQLTranslatorBase
 {
-    public GroupByLinqToKQLTranslator() : base(new() { nameof(Enumerable.GroupBy) })
+    public GroupByLinqToKQLTranslator(LinqToKQLQueryTranslatorConfig config) : base(config, new() { nameof(Enumerable.GroupBy) })
     {
     }
 

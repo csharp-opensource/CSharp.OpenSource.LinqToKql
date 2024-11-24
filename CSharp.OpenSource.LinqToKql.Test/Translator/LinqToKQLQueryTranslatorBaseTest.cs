@@ -5,20 +5,28 @@ namespace CSharp.OpenSource.LinqToKql.Test.Translator;
 
 public abstract class LinqToKQLQueryTranslatorBaseTest
 {
-    protected LinqToKQLQueryTranslator GetTranslator() => new();
+    protected LinqToKQLQueryTranslator GetTranslator(LinqToKQLQueryTranslatorConfig? config = null) => new(config);
     protected readonly string _tableName = "myTable";
     protected readonly IQueryable<SampleObject> _q = new[] { new SampleObject { } }.AsQueryable();
 
-    protected void AssertQuery<T>(IQueryable<T> queryable, string[] expectedArray)
+    protected void AssertQuery<T>(IQueryable<T> queryable, string[] expectedArray, LinqToKQLQueryTranslatorConfig? config = null)
     {
-        var translator = GetTranslator();
+        config ??= new();
+        var translator = GetTranslator(config);
         var expected = string.Join(
             translator.PipeWithIndentation,
             expectedArray
         );
         // Act
-        var actual = GetTranslator().Translate(queryable, _tableName);
+        var actual = translator.Translate(queryable, _tableName);
+
         // Assert
+        var partsExpected = expected.Split(config.PipeWithIndentation);
+        var actualParts = actual.Split(config.PipeWithIndentation);
+        for (var i = 0; i < partsExpected.Length; i++)
+        {
+            Assert.Equal(partsExpected[i], actualParts[i]);
+        }
         Assert.Equal(expected, actual);
     }
 }

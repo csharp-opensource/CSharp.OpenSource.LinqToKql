@@ -4,7 +4,7 @@ namespace CSharp.OpenSource.LinqToKql.Translator.Builders
 {
     public class TaskLinqToKQLTranslator : LinqToKQLTranslatorBase
     {
-        public TaskLinqToKQLTranslator() : base(new() { nameof(Enumerable.Take), })
+        public TaskLinqToKQLTranslator(LinqToKQLQueryTranslatorConfig config) : base(config, new() { nameof(Enumerable.Take), })
         {
         }
 
