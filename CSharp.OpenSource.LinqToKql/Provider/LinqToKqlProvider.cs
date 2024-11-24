@@ -42,7 +42,7 @@ public class LinqToKqlProvider<T> : IQueryable<T>, IQueryProvider, IOrderedQuery
         
     public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
-        var results = await ExecuteAsync<T>(Expression);
+        var results = await ExecuteAsync<List<T>>(Expression);
         foreach (var result in results)
         {
             yield return result;
