@@ -40,7 +40,7 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
     protected virtual LinqToKqlProvider<S> Clone<S>(Expression expression)
         => new LinqToKqlProvider<S>(TableName, expression, ProviderExecutor);
         
-    public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    public virtual async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
         var results = await ExecuteAsync<List<T>>(Expression);
         foreach (var result in results)
