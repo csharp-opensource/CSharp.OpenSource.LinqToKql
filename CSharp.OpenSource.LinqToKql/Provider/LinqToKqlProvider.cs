@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace CSharp.OpenSource.LinqToKql.Provider;
 
-public class LinqToKqlProvider<T> : IQueryable<T>, IQueryProvider, IOrderedQueryable<T>
+public class LinqToKqlProvider<T> : IQueryable<T>, IQueryProvider, IOrderedQueryable<T>, IAsyncEnumerable<T>
 {
     protected readonly LinqToKQLQueryTranslator Translator = new();
     protected readonly string TableName;
@@ -25,10 +25,13 @@ public class LinqToKqlProvider<T> : IQueryable<T>, IQueryProvider, IOrderedQuery
         => Execute<object>(expression);
 
     public virtual TResult Execute<TResult>(Expression expression)
+        => ExecuteAsync<TResult>().GetAwaitter().GetResult();
+
+    public virtual Task<TResult> ExecuteAsync<TResult>(Expression expression)
     {
         if (ProviderExecutor == null) { throw new InvalidOperationException("ProviderExecutor is not set."); }
         var kql = Translator.Translate(expression, TableName);
-        return ProviderExecutor.ExecuteAsync<TResult>(kql).GetAwaiter().GetResult();
+        return ProviderExecutor.ExecuteAsync<TResult>(kql);
     }
 
     public virtual IQueryable<TElement> CreateQuery<TElement>(Expression expression)
