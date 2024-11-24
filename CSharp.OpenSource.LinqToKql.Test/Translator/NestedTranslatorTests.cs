@@ -48,4 +48,20 @@ public class NestedTranslatorTests : LinqToKQLQueryTranslatorBaseTest
             [_tableName, "extend Name3=Name, Nested=dynamic({\"Name3\":Nested.Name2})"],
             config: new() { DisableNestedProjection = false }
         );
+
+    [Fact]
+    public void Translate_ShouldHandleSelectCondition()
+        => AssertQuery(
+            _q.Select(x => new { Name3 = x.Name, Nested = x.Nested != null ? new SampleObject3 { Name3 = x.Nested.Name2, } : default }),
+            [_tableName, "extend Name3=Name, Nested=iff((Nested != null),Name3=Nested.Name2,null)"],
+            config: new() { DisableNestedProjection = false }
+        );
+
+    [Fact]
+    public void Translate_ShouldHandleSelectCondition_DisableNestedTrue()
+        => AssertQuery(
+            _q.Select(x => new { Name3 = x.Name, Nested = x.Nested != null ? new SampleObject3 { Name3 = x.Nested.Name2, } : default }),
+            [_tableName, "project Name3=Name, Nested"],
+            config: new() { DisableNestedProjection = true }
+        );
 }

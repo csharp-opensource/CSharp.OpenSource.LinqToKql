@@ -1,5 +1,6 @@
 ﻿using CSharp.OpenSource.LinqToKql.Translator.Models;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace CSharp.OpenSource.LinqToKql.Translator.Builders;
 
@@ -26,6 +27,7 @@ public abstract class LinqToKQLTranslatorBase
             MemberInitExpression memberInitExpression => SelectInitMembers(memberInitExpression, isAfterGroupBy),
             NewExpression newExpr => isAfterGroupBy ? "" : SelectNewExpression(newExpr),
             MemberExpression member => member.Expression == null || member.Expression is ParameterExpression ? member.Member.Name : $"{SelectMembers(member.Expression)}.{member.Member.Name}",
+            ConstantExpression constant => GetValue(constant.Value),
             _ => throw new NotSupportedException($"{GetType().Name} - Expression type {expression.GetType()} is not supported, expression={expression}."),
         };
     }
@@ -49,11 +51,19 @@ public abstract class LinqToKQLTranslatorBase
                 res.Add(item.memberName == item.argName || arg.NodeType != ExpressionType.MemberAccess ? item.memberName! : $"{item.memberName}={item.argName}");
                 continue;
             }
+            if (arg is ConditionalExpression conditionalExpression)
+            {
+                var conditionKQL = BuildFilter(conditionalExpression.Test);
+                var ifTrueKQL = SelectMembers(conditionalExpression.IfTrue);
+                var ifFalseKQL = SelectMembers(conditionalExpression.IfFalse);
+                res.Add($"{item.memberName}=iff(({conditionKQL}),{ifTrueKQL},{ifFalseKQL})");
+                continue;
+            }
             var members = arg.NodeType switch
             {
                 ExpressionType.MemberInit => SelectInitMembersModels(arg as MemberInitExpression, false),
                 ExpressionType.New => SelectNewMembersModels(arg as NewExpression),
-                _ => throw new NotImplementedException(""),
+                _ => throw new NotImplementedException(arg.NodeType.ToString()),
             };
             var dynamicBlock = $"{item.memberName}=dynamic({{";
             foreach (var m in members)
@@ -135,5 +145,62 @@ public abstract class LinqToKQLTranslatorBase
             DateOnly date => $"datetime({date:yyyy-MM-dd})",
             string str => $"'{str}'",
             _ => value?.ToString() ?? "null",
+        };
+
+    protected string BuildFilter(Expression expression)
+            => expression switch
+            {
+                MethodCallExpression methodCall when methodCall.Method.Name == nameof(string.Contains) => $"{BuildFilter(methodCall.Arguments[1])} has {BuildFilter(methodCall.Arguments[0])}",
+                UnaryExpression unaryExpression when unaryExpression.NodeType == ExpressionType.Not => $"!({BuildFilter(unaryExpression.Operand)})",
+                BinaryExpression binary => BuildBinaryOperation(binary),
+                MemberExpression member when member.Expression is ConstantExpression c => GetValue(c, member),
+                MemberExpression member => SelectMembers(member),
+                NewArrayExpression newArrayExpression => $"({string.Join(", ", newArrayExpression.Expressions.Select(BuildFilter))})",
+                NewExpression newExpression => GetValue(Expression.Lambda(newExpression).Compile().DynamicInvoke()),
+                ConstantExpression constant => GetValue(constant.Value),
+                _ => throw new NotSupportedException($"Expression type {expression.GetType()} is not supported."),
+            };
+
+    protected string BuildBinaryOperation(BinaryExpression binary)
+    {
+        var left = BuildFilter(binary.Left);
+        var right = BuildFilter(binary.Right);
+        var op = GetOperator(binary.NodeType);
+        return $"{left} {op} {right}";
+    }
+
+    protected string GetValue(ConstantExpression constant, MemberExpression? member)
+    {
+        if (member == null) { return GetValue(constant.Value); }
+        if (member.Member is FieldInfo fieldInfo)
+        {
+            return GetValue(fieldInfo.GetValue(constant.Value));
+        }
+        if (member.Member is PropertyInfo propertyInfo)
+        {
+            return GetValue(propertyInfo.GetValue(constant.Value));
+        }
+        throw new NotSupportedException($"Member type {member.Member.GetType()} is not supported.");
+    }
+
+    protected string GetValue(NewExpression newExpression)
+    {
+        var compiledValue = Expression.Lambda(newExpression).Compile().DynamicInvoke();
+        return GetValue(compiledValue);
+    }
+
+    protected string GetOperator(ExpressionType nodeType)
+        => nodeType switch
+        {
+            ExpressionType.Equal => "==",
+            ExpressionType.NotEqual => "!=",
+            ExpressionType.GreaterThan => ">",
+            ExpressionType.LessThan => "<",
+            ExpressionType.GreaterThanOrEqual => ">=",
+            ExpressionType.LessThanOrEqual => "<=",
+            ExpressionType.AndAlso => "and",
+            ExpressionType.OrElse => "or",
+            ExpressionType.Negate => "!",
+            _ => throw new NotSupportedException($"Operator {nodeType} is not supported.")
         };
 }
