@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using CSharp.OpenSource.LinqToKql.Extensions;
+using System.Linq.Expressions;
 
 namespace CSharp.OpenSource.LinqToKql.Translator.Builders
 {
@@ -10,7 +11,7 @@ namespace CSharp.OpenSource.LinqToKql.Translator.Builders
 
         public override string Handle(MethodCallExpression methodCall, Expression? parent)
         {
-            var count = GetValue(((ConstantExpression)methodCall.Arguments[1]).Value);
+            var count = ((ConstantExpression)methodCall.Arguments[1]).Value.GetKQLValue();
             return $"take {count}";
         }
     }

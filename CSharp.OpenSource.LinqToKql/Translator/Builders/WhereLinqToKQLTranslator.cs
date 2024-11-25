@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace CSharp.OpenSource.LinqToKql.Translator.Builders;
 
@@ -14,7 +13,5 @@ public class WhereLinqToKQLTranslator : LinqToKQLTranslatorBase
         var lambda = (LambdaExpression)((UnaryExpression)methodCall.Arguments[1]).Operand;
         var condition = BuildFilter(lambda.Body);
         return $"where {condition}";
-    }
-
-    
+    }   
 }

@@ -25,14 +25,14 @@ public class LinqToKQLQueryTranslator
 
     public string PipeWithIndentation => Config.PipeWithIndentation;
 
-    public string Translate<T>(IQueryable<T> query, string tableName)
+    public string Translate<T>(IQueryable<T> query, string tableOrKQL)
     {
-        return Translate(query.Expression, tableName);
+        return Translate(query.Expression, tableOrKQL);
     }
 
-    public string Translate(Expression expression, string tableName)
+    public string Translate(Expression expression, string tableOrKQL)
     {
-        var kqlBuilder = new StringBuilder(tableName);
+        var kqlBuilder = new StringBuilder(tableOrKQL);
         TranslateExpression(expression, kqlBuilder, null);
         return kqlBuilder.ToString();
     }

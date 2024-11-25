@@ -1,4 +1,5 @@
-﻿using CSharp.OpenSource.LinqToKql.Translator.Models;
+﻿using CSharp.OpenSource.LinqToKql.Extensions;
+using CSharp.OpenSource.LinqToKql.Translator.Models;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -27,7 +28,7 @@ public abstract class LinqToKQLTranslatorBase
             MemberInitExpression memberInitExpression => SelectInitMembers(memberInitExpression, isAfterGroupBy),
             NewExpression newExpr => isAfterGroupBy ? "" : SelectNewExpression(newExpr),
             MemberExpression member => member.Expression == null || member.Expression is ParameterExpression ? member.Member.Name : $"{SelectMembers(member.Expression)}.{member.Member.Name}",
-            ConstantExpression constant => GetValue(constant.Value),
+            ConstantExpression constant => constant.Value.GetKQLValue(),
             _ => throw new NotSupportedException($"{GetType().Name} - Expression type {expression.GetType()} is not supported, expression={expression}."),
         };
     }
@@ -135,18 +136,6 @@ public abstract class LinqToKQLTranslatorBase
         }
     }
 
-    protected string GetValue(object? value)
-        => value switch
-        {
-            bool boolean => boolean.ToString().ToLower(),
-            TimeOnly time => $"timespan({time:HH:mm:ss.f})",
-            TimeSpan timeSpan => $"timespan({timeSpan.Days}.{timeSpan.Hours:D2}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2})",
-            DateTime dateTime => $"datetime({dateTime:yyyy-MM-dd HH:mm:ss.f})",
-            DateOnly date => $"datetime({date:yyyy-MM-dd})",
-            string str => $"'{str}'",
-            _ => value?.ToString() ?? "null",
-        };
-
     protected string BuildFilter(Expression expression)
             => expression switch
             {
@@ -156,8 +145,8 @@ public abstract class LinqToKQLTranslatorBase
                 MemberExpression member when member.Expression is ConstantExpression c => GetValue(c, member),
                 MemberExpression member => SelectMembers(member),
                 NewArrayExpression newArrayExpression => $"({string.Join(", ", newArrayExpression.Expressions.Select(BuildFilter))})",
-                NewExpression newExpression => GetValue(Expression.Lambda(newExpression).Compile().DynamicInvoke()),
-                ConstantExpression constant => GetValue(constant.Value),
+                NewExpression newExpression => Expression.Lambda(newExpression).Compile().DynamicInvoke().GetKQLValue(),
+                ConstantExpression constant => constant.Value.GetKQLValue(),
                 _ => throw new NotSupportedException($"Expression type {expression.GetType()} is not supported."),
             };
 
@@ -171,14 +160,14 @@ public abstract class LinqToKQLTranslatorBase
 
     protected string GetValue(ConstantExpression constant, MemberExpression? member)
     {
-        if (member == null) { return GetValue(constant.Value); }
+        if (member == null) { return constant.Value.GetKQLValue(); }
         if (member.Member is FieldInfo fieldInfo)
         {
-            return GetValue(fieldInfo.GetValue(constant.Value));
+            return fieldInfo.GetValue(constant.Value).GetKQLValue();
         }
         if (member.Member is PropertyInfo propertyInfo)
         {
-            return GetValue(propertyInfo.GetValue(constant.Value));
+            return propertyInfo.GetValue(constant.Value).GetKQLValue();
         }
         throw new NotSupportedException($"Member type {member.Member.GetType()} is not supported.");
     }
@@ -186,7 +175,7 @@ public abstract class LinqToKQLTranslatorBase
     protected string GetValue(NewExpression newExpression)
     {
         var compiledValue = Expression.Lambda(newExpression).Compile().DynamicInvoke();
-        return GetValue(compiledValue);
+        return compiledValue.GetKQLValue();
     }
 
     protected string GetOperator(ExpressionType nodeType)

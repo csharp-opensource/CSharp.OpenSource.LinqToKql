@@ -10,16 +10,16 @@ public class KustoHttpClient : IKustoHttpClient
     protected readonly HttpClient _httpClient = new();
     protected string ClusterUrl { get; set; }
     protected string AuthBearerValue { get; set; }
-    protected string Database { get; set; }
+    protected string DefaultDbName { get; set; }
 
-    public KustoHttpClient(string cluster, string auth, string db)
+    public KustoHttpClient(string cluster, string auth, string defaultDbName)
     {
         ClusterUrl = cluster;
         AuthBearerValue = auth;
-        Database = db;
+        DefaultDbName = defaultDbName;
     }
 
-    public virtual Task<T> ExecuteAsync<T>(string kql) => QueryAsync<T>(Database, kql);
+    public virtual Task<T> ExecuteAsync<T>(string kql, string? database = null) => QueryAsync<T>(database ?? DefaultDbName, kql);
 
     public virtual async Task<IKustoQueryResult?> QueryAsync(string csl, string apiVersion = "v2")
     {
@@ -28,7 +28,7 @@ public class KustoHttpClient : IKustoHttpClient
         var requestUri = $"{ClusterUrl}/{apiVersion}/rest/query";
         var req = new HttpRequestMessage(HttpMethod.Post, requestUri)
         {
-            Content = new StringContent(JsonSerializer.Serialize(new { db = Database, csl }), Encoding.UTF8, "application/json"),
+            Content = new StringContent(JsonSerializer.Serialize(new { db = DefaultDbName, csl }), Encoding.UTF8, "application/json"),
         };
         req.Headers.Authorization = new("Bearer", AuthBearerValue);
         var response = await _httpClient.SendAsync(req);
