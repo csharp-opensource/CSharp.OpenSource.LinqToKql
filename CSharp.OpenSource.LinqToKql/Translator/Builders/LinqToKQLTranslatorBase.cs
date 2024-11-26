@@ -143,14 +143,32 @@ public abstract class LinqToKQLTranslatorBase
                 MethodCallExpression methodCall when methodCall.Method.Name == nameof(string.Contains) => $"{BuildFilter(methodCall.Arguments[1])} has {BuildFilter(methodCall.Arguments[0])}",
                 UnaryExpression unaryExpression when unaryExpression.NodeType == ExpressionType.Not => $"!({BuildFilter(unaryExpression.Operand)})",
                 BinaryExpression binary => BuildBinaryOperation(binary),
-                MemberExpression member when member.Expression is ConstantExpression c => GetValue(c, member).ToString()!,
-                MemberExpression member when member.Expression is MemberExpression m => GetValue(m, member).ToString()!,
-                MemberExpression member => SelectMembers(member),
+                MemberExpression member => BuildMemberExpression(member),
                 NewArrayExpression newArrayExpression => $"({string.Join(", ", newArrayExpression.Expressions.Select(BuildFilter))})",
                 NewExpression newExpression => Expression.Lambda(newExpression).Compile().DynamicInvoke().GetKQLValue(),
                 ConstantExpression constant => constant.Value.GetKQLValue(),
                 _ => throw new NotSupportedException($"Expression type {expression.GetType()} is not supported."),
             };
+
+    private string BuildMemberExpression(MemberExpression member)
+    {
+        var lastExpression = member as Expression;
+        while ((lastExpression as MemberExpression) != null)
+        {
+            if (lastExpression is not MemberExpression innerMember) { break; }
+            if (innerMember.Expression == null) { break; }
+            lastExpression = innerMember.Expression;
+        }
+        if (lastExpression.NodeType == ExpressionType.Parameter)
+        {
+            return SelectMembers(member);
+        }
+        if (member.Expression != null) 
+        {
+            return GetValue(member.Expression, member).ToString()!;
+        }
+        return GetValue(member, null).ToString()!;
+    }
 
     protected string BuildBinaryOperation(BinaryExpression binary)
     {
