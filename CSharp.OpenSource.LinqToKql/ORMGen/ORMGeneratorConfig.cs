@@ -8,11 +8,14 @@ public class ORMGeneratorConfig
     public string Namespace { get; set; }
     public List<ORMGeneratorDatabaseConfig> DatabaseConfigs { get; set; }
     public bool CreateDbContext { get; set; } = true;
-    public bool CleanModelsFolderBeforeCreate { get; set; }
+    public bool CleanFolderBeforeCreate { get; set; }
     public string ModelsFolderPath { get; set; }
     public string ModelsNamespace { get; set; }
     public string DbContextName { get; set; }
     public string DbContextFolderPath { get; set; }
+    public string DbContextFilePath => Path.Combine(DbContextFolderPath, $"{DbContextName}.cs");
     public string DbContextNamespace { get; set; }
     public ILinqToKqlProviderExecutor ProviderExecutor { get; set; }
+    public bool FileScopedNamespaces { get; set; } = true;
+    public bool EnableNullable { get; set; } = true;
 }
