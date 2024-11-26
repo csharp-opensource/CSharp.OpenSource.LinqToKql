@@ -77,7 +77,7 @@ public class ORMGenerator
         lines.Add($"}}");
 
         var fileContent = string.Join(NewLine, lines);
-        await File.WriteAllTextAsync(Config.DbContextPath, fileContent);
+        await File.WriteAllTextAsync(Path.Combine(Config.DbContextFolderPath, dbContextName, ".cs"), fileContent);
     }
 
     protected virtual async Task<ORMGenaratedModel> GenerateFunctionModelAsync(ShowFunctionsResult function, ORMGeneratorDatabaseConfig dbConfig)
@@ -209,8 +209,7 @@ public class ORMGenerator
     protected virtual void PrepareFolders()
     {
         if (!Directory.Exists(Config.ModelsFolderPath)) { Directory.CreateDirectory(Config.ModelsFolderPath); }
-        var dbContextFolder = Path.GetDirectoryName(Config.DbContextPath)!;
-        if (!Directory.Exists(dbContextFolder)) { Directory.CreateDirectory(dbContextFolder); }
+        if (!Directory.Exists(Config.DbContextFolderPath)) { Directory.CreateDirectory(Config.DbContextFolderPath); }
         if (Config.CleanModelsFolderBeforeCreate)
         {
             foreach (var file in Directory.GetFiles(Config.ModelsFolderPath, "*", SearchOption.AllDirectories))

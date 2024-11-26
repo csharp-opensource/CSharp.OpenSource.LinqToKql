@@ -2,6 +2,7 @@
 using CSharp.OpenSource.LinqToKql.Translator.Models;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Metadata;
 
 namespace CSharp.OpenSource.LinqToKql.Translator.Builders;
 
@@ -142,7 +143,8 @@ public abstract class LinqToKQLTranslatorBase
                 MethodCallExpression methodCall when methodCall.Method.Name == nameof(string.Contains) => $"{BuildFilter(methodCall.Arguments[1])} has {BuildFilter(methodCall.Arguments[0])}",
                 UnaryExpression unaryExpression when unaryExpression.NodeType == ExpressionType.Not => $"!({BuildFilter(unaryExpression.Operand)})",
                 BinaryExpression binary => BuildBinaryOperation(binary),
-                MemberExpression member when member.Expression is ConstantExpression c => GetValue(c, member),
+                MemberExpression member when member.Expression is ConstantExpression c => GetValue(c, member).ToString(),
+                MemberExpression member when member.Expression is MemberExpression m => GetValue(m, member).ToString(),
                 MemberExpression member => SelectMembers(member),
                 NewArrayExpression newArrayExpression => $"({string.Join(", ", newArrayExpression.Expressions.Select(BuildFilter))})",
                 NewExpression newExpression => Expression.Lambda(newExpression).Compile().DynamicInvoke().GetKQLValue(),
@@ -158,24 +160,46 @@ public abstract class LinqToKQLTranslatorBase
         return $"{left} {op} {right}";
     }
 
-    protected string GetValue(ConstantExpression constant, MemberExpression? member)
+    protected object GetValue(Expression expression, MemberExpression? parentExpression, bool getAsKQLValue = true)
     {
-        if (member == null) { return constant.Value.GetKQLValue(); }
-        if (member.Member is FieldInfo fieldInfo)
+        if (expression is ConstantExpression constant)
         {
-            return fieldInfo.GetValue(constant.Value).GetKQLValue();
+            var val = parentExpression == null
+                ? constant.Value
+                : GetValueFromParent(constant.Value, parentExpression);
+            return getAsKQLValue ? val.GetKQLValue() : val;
         }
-        if (member.Member is PropertyInfo propertyInfo)
+        if (expression is NewExpression newExpression)
         {
-            return propertyInfo.GetValue(constant.Value).GetKQLValue();
+            var compiledValue = Expression.Lambda(newExpression).Compile().DynamicInvoke();
+            return compiledValue.GetKQLValue();
         }
-        throw new NotSupportedException($"Member type {member.Member.GetType()} is not supported.");
+        if (expression is MemberExpression member)
+        {
+            if (parentExpression == null)
+            {
+                throw new NotSupportedException();
+            }
+            var innerValue = GetValue(member.Expression, member, false);
+            return GetValueFromParent(innerValue, parentExpression).GetKQLValue();
+        }
+        throw new NotSupportedException($"expression type = {expression.GetType()}, Member type {parentExpression.Member.GetType()} is not supported.");
     }
 
-    protected string GetValue(NewExpression newExpression)
+    private object GetValueFromParent(object value, MemberExpression parentExpression)
     {
-        var compiledValue = Expression.Lambda(newExpression).Compile().DynamicInvoke();
-        return compiledValue.GetKQLValue();
+        if (parentExpression.Member is FieldInfo fieldInfo)
+        {
+            return fieldInfo.GetValue(value);
+        }
+        else if (parentExpression.Member is PropertyInfo propertyInfo)
+        {
+            return propertyInfo.GetValue(value);
+        }
+        else
+        {
+            throw new NotSupportedException();
+        }
     }
 
     protected string GetOperator(ExpressionType nodeType)

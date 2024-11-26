@@ -12,7 +12,7 @@ public class ORMGeneratorConfig
     public string ModelsFolderPath { get; set; }
     public string ModelsNamespace { get; set; }
     public string DbContextName { get; set; }
-    public string DbContextPath { get; set; }
+    public string DbContextFolderPath { get; set; }
     public string DbContextNamespace { get; set; }
     public ILinqToKqlProviderExecutor ProviderExecutor { get; set; }
 }
