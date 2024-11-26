@@ -7,9 +7,9 @@ namespace CSharp.OpenSource.LinqToKql.ORMGen;
 public class ORMGenerator
 {
     public ORMGeneratorConfig Config { get; set; }
-    private ORMKustoDbContext DbContext { get; set; }
-    private const string NewLine = "\n";
-    private const string TAB = "    ";
+    protected virtual ORMKustoDbContext DbContext { get; set; }
+    protected const string NewLine = "\n";
+    protected const string TAB = "    ";
 
     public ORMGenerator(ORMGeneratorConfig config)
     {
@@ -17,7 +17,7 @@ public class ORMGenerator
         DbContext = new(new KustoDbContextExecutor(config.ProviderExecutor));
     }
 
-    public async Task GenerateAsync()
+    public virtual async Task GenerateAsync()
     {
         PrepareFolders();
         var models = new List<ORMGenaratedModel>();
@@ -40,7 +40,7 @@ public class ORMGenerator
         }
     }
 
-    private async Task GenerateDbContextAsync(List<ORMGenaratedModel> models)
+    protected virtual async Task GenerateDbContextAsync(List<ORMGenaratedModel> models)
     {
         var namespaces = new List<string>
             {
@@ -80,7 +80,7 @@ public class ORMGenerator
         await File.WriteAllTextAsync(Config.DbContextPath, fileContent);
     }
 
-    private async Task<ORMGenaratedModel> GenerateFunctionModelAsync(ShowFunctionsResult function, ORMGeneratorDatabaseConfig dbConfig)
+    protected virtual async Task<ORMGenaratedModel> GenerateFunctionModelAsync(ShowFunctionsResult function, ORMGeneratorDatabaseConfig dbConfig)
     {
         var funcParams = function.Parameters.TrimStart('(').TrimEnd(')')
             .Split(',')
@@ -120,7 +120,7 @@ public class ORMGenerator
         };
     }
 
-    private async Task<ORMGenaratedModel> GenerateTableModelAsync(ShowTableResult table, ORMGeneratorDatabaseConfig dbConfig)
+    protected virtual async Task<ORMGenaratedModel> GenerateTableModelAsync(ShowTableResult table, ORMGeneratorDatabaseConfig dbConfig)
     {
         return new()
         {
@@ -130,7 +130,7 @@ public class ORMGenerator
         };
     }
 
-    private async Task<List<ShowTableResult>> GetTablesAsync(ORMGeneratorDatabaseConfig dbConfig)
+    protected virtual async Task<List<ShowTableResult>> GetTablesAsync(ORMGeneratorDatabaseConfig dbConfig)
     {
         var tables = await DbContext.CreateQuery<ShowTableResult>(".show schema", dbConfig.DatabaseName)
             .Where(x => x.DatabaseName == dbConfig.DatabaseName)
@@ -143,7 +143,7 @@ public class ORMGenerator
         return ApplyFilters(tables, t => t.TableName, filters);
     }
 
-    private async Task<List<ShowFunctionsResult>> GetFunctionsAsync(ORMGeneratorDatabaseConfig dbConfig)
+    protected virtual async Task<List<ShowFunctionsResult>> GetFunctionsAsync(ORMGeneratorDatabaseConfig dbConfig)
     {
         var functions = await DbContext.CreateQuery<ShowFunctionsResult>(".show functions", dbConfig.DatabaseName)
             .ToListAsync();
@@ -156,7 +156,7 @@ public class ORMGenerator
         return functions;
     }
 
-    private string DataTypeTranslate(string kustoDataType)
+    protected virtual string DataTypeTranslate(string kustoDataType)
     {
         var type = kustoDataType.Replace("System.", "");
         type = type switch
@@ -170,7 +170,7 @@ public class ORMGenerator
     }
 
     // https://learn.microsoft.com/en-us/kusto/query/scalar-data-types/?view=microsoft-fabric
-    private string KustoTypeTranslate(string kustoType) =>
+    protected virtual string KustoTypeTranslate(string kustoType) =>
         kustoType switch
         {
             "bool" or "boolean" => "bool",
@@ -187,10 +187,10 @@ public class ORMGenerator
             _ => "object",
         };
 
-    private string PropDeclaration(string type, string name)
+    protected virtual string PropDeclaration(string type, string name)
         => $"public {DataTypeTranslate(type)} {name} {{ get; set; }}";
 
-    private List<T> ApplyFilters<T>(List<T> list, Func<T, string> valueGetter, List<ORMGeneratorFilter> filters)
+    protected virtual List<T> ApplyFilters<T>(List<T> list, Func<T, string> valueGetter, List<ORMGeneratorFilter> filters)
     {
         return list.FindAll(table =>
         {
@@ -206,7 +206,7 @@ public class ORMGenerator
         });
     }
 
-    private void PrepareFolders()
+    protected virtual void PrepareFolders()
     {
         if (!Directory.Exists(Config.ModelsFolderPath)) { Directory.CreateDirectory(Config.ModelsFolderPath); }
         var dbContextFolder = Path.GetDirectoryName(Config.DbContextPath)!;
