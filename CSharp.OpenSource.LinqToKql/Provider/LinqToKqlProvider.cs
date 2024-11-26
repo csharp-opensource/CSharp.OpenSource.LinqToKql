@@ -6,7 +6,7 @@ namespace CSharp.OpenSource.LinqToKql.Provider;
 
 public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
 {
-    protected readonly LinqToKQLQueryTranslator Translator;
+    public LinqToKQLQueryTranslator Translator { get; }
     public string TableOrKQL { get; set; }
     public string? DefaultDbName { get; set; }
     public Type ElementType => typeof(T);
@@ -39,14 +39,17 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
     public virtual Task<TResult> ExecuteAsync<TResult>(Expression expression)
     {
         if (ProviderExecutor == null) { throw new InvalidOperationException("ProviderExecutor is not set."); }
-        var kql = Translator.Translate(expression, TableOrKQL);
+        var kql = TranslateToKQL(expression);
         return ProviderExecutor.ExecuteAsync<TResult>(kql, DefaultDbName);
     }
+
+    public virtual string TranslateToKQL(Expression? expression = null)
+        => Translator.Translate(expression ?? Expression, TableOrKQL);
 
     public virtual IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         => Clone<TElement>(expression);
 
-    protected virtual LinqToKqlProvider<S> Clone<S>(Expression expression)
+    public virtual LinqToKqlProvider<S> Clone<S>(Expression? expression = null)
         => new LinqToKqlProvider<S>(TableOrKQL, expression, ProviderExecutor, Translator.Config, DefaultDbName);
 
     public virtual async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)

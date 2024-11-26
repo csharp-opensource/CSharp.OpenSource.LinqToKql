@@ -9,7 +9,7 @@ public class KustoQueryResultV2 : List<KustoQueryResultV2Item>, IKustoQueryResul
         {
             return resultList;
         }
-        var resultTable = this.FirstOrDefault(x => x.TableName == "PrimaryResult");
+        var resultTable = this.FirstOrDefault(x => x.TableKind == "PrimaryResult");
         if (resultTable == null)
         {
             return resultList;

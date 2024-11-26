@@ -2,7 +2,7 @@
 
 public class ORMGeneratorFilterConfig
 {
-    public List<ORMGeneratorFilter> TableFilters { get; set; }
-    public List<ORMGeneratorFilter> FunctionFilters { get; set; }
-    public List<ORMGeneratorFilter> GlobalFilters { get; set; }
+    public List<ORMGeneratorFilter> TableFilters { get; set; } = new();
+    public List<ORMGeneratorFilter> FunctionFilters { get; set; } = new();
+    public List<ORMGeneratorFilter> GlobalFilters { get; set; } = new();
 }

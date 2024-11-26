@@ -1,6 +1,6 @@
 ﻿namespace CSharp.OpenSource.LinqToKql.Models;
 
-public class ShowTableResult
+public class ShowSchemaResult
 {
     public string DatabaseName { get; set; }
     public string TableName { get; set; }

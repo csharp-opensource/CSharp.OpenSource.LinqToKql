@@ -4,7 +4,7 @@ namespace CSharp.OpenSource.LinqToKql.ORMGen;
 
 public class ORMGeneratorConfig
 {
-    public ORMGeneratorFilterConfig Filters { get; set; }
+    public ORMGeneratorFilterConfig Filters { get; set; } = new();
     public string Namespace { get; set; }
     public List<ORMGeneratorDatabaseConfig> DatabaseConfigs { get; set; }
     public bool CreateDbContext { get; set; } = true;

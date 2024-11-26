@@ -26,6 +26,11 @@ public class KustoHttpClient : IKustoHttpClient
         if (string.IsNullOrEmpty(ClusterUrl)) { throw new InvalidOperationException($"{nameof(ClusterUrl)} must be set before querying."); }
         if (string.IsNullOrEmpty(AuthBearerValue)) { throw new InvalidOperationException($"{nameof(AuthBearerValue)} must be set before querying."); }
         var requestUri = $"{ClusterUrl}/{apiVersion}/rest/query";
+        if (csl.Trim().StartsWith("."))
+        {
+            apiVersion = "v1";
+            requestUri = $"{ClusterUrl}/v1/rest/mgmt";
+        }
         var req = new HttpRequestMessage(HttpMethod.Post, requestUri)
         {
             Content = new StringContent(JsonSerializer.Serialize(new { db = DefaultDbName, csl }), Encoding.UTF8, "application/json"),

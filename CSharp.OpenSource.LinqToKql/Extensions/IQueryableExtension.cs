@@ -39,10 +39,19 @@ public static class IQueryableExtension
         return kql;
     }
 
-    public static ILinqToKqlProvider<T> WithKQL<T>(this IQueryable<T> q, string tableOrKQL)
+    public static ILinqToKqlProvider<T> FromKQL<T>(this IQueryable<T> q, string tableOrKQL, bool appendKQL = true)
+        => q.FromKQL<T, T>(tableOrKQL, appendKQL);
+
+    public static ILinqToKqlProvider<S> FromKQL<T, S>(this IQueryable<T> q, string tableOrKQL, bool appendKQL = true)
     {
         var kql = q.AsKQL();
+        if (appendKQL)
+        {
+            var currentKQL = kql.TranslateToKQL().Trim(' ').TrimEnd('|').Trim(' ');
+            tableOrKQL = tableOrKQL.Trim(' ').TrimStart('|').Trim(' ');
+            tableOrKQL = string.Join(kql.Translator.PipeWithIndentation, currentKQL, tableOrKQL);
+        }
         kql.TableOrKQL = tableOrKQL;
-        return kql;
+        return kql.Clone<S>(null);
     }
 }
