@@ -241,29 +241,6 @@ public class ORMGenerator
         return functions;
     }
 
-    protected virtual string DataTypeTranslate(string kustoDataType)
-    {
-        var type = kustoDataType.Replace("System.", "");
-        type = type switch
-        {
-            nameof(String) => nameof(String).ToLower(),
-            nameof(Object) => nameof(Object).ToLower(),
-            nameof(SByte) => "bool",
-            nameof(Int64) => "long",
-            nameof(Int16) => "short",
-            nameof(Int32) => "int",
-            nameof(Double) => nameof(Double).ToLower(),
-            nameof(Decimal) => nameof(Decimal).ToLower(),
-            "System.Data.SqlTypes.SqlDecimal" => nameof(Decimal).ToLower(),
-            _ => type,
-        };
-        if (!Config.EnableNullable && type == "string")
-        {
-            return type;
-        }
-        return type + "?";
-    }
-
     protected virtual List<T> ApplyFilters<T>(List<T> list, Func<T, string> valueGetter, List<ORMGeneratorFilter> filters)
     {
         return list.FindAll(table =>
@@ -313,6 +290,31 @@ public class ORMGenerator
         "dynamic" => "object?",
         _ => "object?",
     };
+
+    // https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/scalar-data-types/index.md
+    protected virtual string DataTypeTranslate(string kustoDataType)
+    {
+        var type = kustoDataType.Replace("System.", "");
+        type = type switch
+        {
+            nameof(String) => nameof(String).ToLower(),
+            nameof(Object) => nameof(Object).ToLower(),
+            nameof(SByte) => "bool",
+            nameof(Boolean) => "bool",
+            nameof(Int64) => "long",
+            nameof(Int16) => "short",
+            nameof(Int32) => "int",
+            nameof(Double) => nameof(Double).ToLower(),
+            nameof(Decimal) => nameof(Decimal).ToLower(),
+            "System.Data.SqlTypes.SqlDecimal" => nameof(Decimal).ToLower(),
+            _ => type,
+        };
+        if (!Config.EnableNullable && type == "string")
+        {
+            return type;
+        }
+        return type + "?";
+    }
 
     public string DefaultValue(string kustoType) => kustoType switch
     {
