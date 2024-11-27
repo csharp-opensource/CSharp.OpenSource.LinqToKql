@@ -1,6 +1,7 @@
 ﻿using CSharp.OpenSource.LinqToKql.Extensions;
 using CSharp.OpenSource.LinqToKql.Models;
 using CSharp.OpenSource.LinqToKql.Provider;
+using System.Text.RegularExpressions;
 
 namespace CSharp.OpenSource.LinqToKql.ORMGen;
 
@@ -125,15 +126,12 @@ public class ORMGenerator
         var kqlParams = string.Join(", ", function.ParametersItems.Select(x => $"{{{x.Name}.GetKQLValue()}}"));
 
         var usings = new List<string> { "System" };
-        var lines = new List<string>
-        {
-            $"public partial class {typeName}",
-            $"{{",
-        };
+        var modelDeclarationLines = GetModelDeclarationLines(typeName, function.Name, dbConfig.DatabaseName);
+        var lines = new List<string>(modelDeclarationLines);
         var functionColumns = await GetFunctionSchemaAsync(function, dbConfig);
         foreach (var column in functionColumns)
         {
-            lines.Add($"{TAB}public virtual {DataTypeTranslate(column.DataType)} {column.ColumnName} {{ get; set; }}");
+            GenerateProperty(function.Name, dbConfig, lines, column.ColumnName, column.DataType);
         }
         lines.Add($"}}");
         var fileContent = WrapContentWithNamespaceAndUsing(
@@ -157,6 +155,54 @@ public class ORMGenerator
         };
     }
 
+    private List<string> GetModelDeclarationLines(string typeName, string name, string databaseName)
+    {
+        var modification = Config.TableOrFunctionModifications
+            .Where(x => x.DatabasePatterns.Count == 0 || x.DatabasePatterns.Any(p => Match(p, databaseName)))
+            .Where(x => x.TableOrFunctionPatterns.Count == 0 || x.TableOrFunctionPatterns.Any(p => Match(p, name)))
+            .FirstOrDefault();
+        var res = new List<string>();
+        var declaration = $"public partial class {typeName}";
+        if (modification == null)
+        {
+            res.Add(declaration);
+            res.Add("{");
+            return res;
+        }
+        if (!string.IsNullOrEmpty(modification.ClassAttributes))
+        {
+            res.Add(modification.ClassAttributes);
+        }
+        if (!string.IsNullOrEmpty(modification.ClassInherit))
+        {
+            declaration += $" : {modification.ClassInherit}";
+        }
+        res.Add(declaration);
+        res.Add("{");
+        res.AddRange(modification.BodyExtraLines);
+        return res;
+    }
+
+    private void GenerateProperty(string tableOrFunctionName, ORMGeneratorDatabaseConfig dbConfig, List<string> lines, string columnType, string columnName)
+    {
+        var modification = Config.ColumnModifications
+            .Where(x => x.DatabasePatterns.Count == 0 || x.DatabasePatterns.Any(p => Match(p, dbConfig.DatabaseName)))
+            .Where(x => x.TableOrFunctionPatterns.Count == 0 || x.TableOrFunctionPatterns.Any(p => Match(p, tableOrFunctionName)))
+            .Where(x => x.ColumnNamePatterns.Count == 0 || x.ColumnNamePatterns.Any(p => Match(p, columnName)))
+            .FirstOrDefault();
+        if (modification?.Exclude == true)
+        {
+            return;
+        }
+        var attributes = modification?.ColumnAttributes ?? "";
+        if (attributes.Length > 0)
+        {
+            lines.Add($"{TAB}{attributes}");
+        }
+        columnType = modification?.NewColumnType ?? DataTypeTranslate(columnType);
+        lines.Add($"{TAB}public virtual {columnType} {columnName} {{ get; set; }}");
+    }
+
     private async Task<List<GetSchemaResult>> GetFunctionSchemaAsync(ShowFunctionsResult function, ORMGeneratorDatabaseConfig dbConfig)
     {
         return await DbContext.CreateQuery<GetSchemaResult>($"{function.Name}({string.Join(", ", function.ParametersItems.Select(x => DefaultValue(x.Type)))})", dbConfig.DatabaseName)
@@ -169,14 +215,11 @@ public class ORMGenerator
     {
         var typeName = GetModelName(table.Name);
         var usings = new List<string> { "System" };
-        var lines = new List<string>
-        {
-            $"public partial class {typeName}",
-            $"{{",
-        };
+        var modelDeclarationLines = GetModelDeclarationLines(typeName, table.Name, dbConfig.DatabaseName);
+        var lines = new List<string>(modelDeclarationLines);
         foreach (var column in table.Columns)
         {
-            lines.Add($"{TAB}public virtual {DataTypeTranslate(column.ColumnType)} {column.ColumnName} {{ get; set; }}");
+            GenerateProperty(table.Name, dbConfig, lines, column.ColumnType, column.ColumnName);
         }
         lines.Add($"}}");
         var fileContent = WrapContentWithNamespaceAndUsing(
@@ -245,11 +288,11 @@ public class ORMGenerator
     {
         return list.FindAll(table =>
         {
-            if (filters.Any(f => !f.Exclude && f.Match(valueGetter(table))))
+            if (filters.Any(f => !f.Exclude && Match(valueGetter(table), f.Pattern)))
             {
                 return true;
             }
-            if (filters.Any(f => f.Exclude && f.Match(valueGetter(table))))
+            if (filters.Any(f => f.Exclude && Match(valueGetter(table), f.Pattern)))
             {
                 return false;
             }
@@ -338,5 +381,14 @@ public class ORMGenerator
         var finalName = name + _modelsNames[name];
         _modelsNames[name]++;
         return finalName;
+    }
+
+    public bool Match(string value, string pattern)
+    {
+        // Escape the pattern and replace '*' and '?' with regex equivalents
+        string regexPattern = "^" + Regex.Escape(pattern)
+                                     .Replace("\\*", ".*")
+                                     .Replace("\\?", ".") + "$";
+        return Regex.IsMatch(value, regexPattern);
     }
 }
