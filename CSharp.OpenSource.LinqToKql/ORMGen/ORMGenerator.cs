@@ -34,30 +34,36 @@ public class ORMGenerator
             Console.WriteLine("-------------------------");
             Console.WriteLine(" ");
 
-            Console.WriteLine("---------- Tables ----------");
             var tables = await GetTablesAsync(dbConfig);
-            foreach (var table in tables)
+            if (tables.Count > 0)
             {
-                Console.WriteLine($"{table.Name} Start");
-                models.Add(await GenerateTableModelAsync(table, dbConfig));
-                Console.WriteLine($"{table.Name} End");
+                Console.WriteLine("---------- Tables ----------");
+                foreach (var table in tables)
+                {
+                    Console.WriteLine($"{table.Name} Start");
+                    models.Add(await GenerateTableModelAsync(table, dbConfig));
+                    Console.WriteLine($"{table.Name} End");
+                }
+                Console.WriteLine(" ");
             }
-            Console.WriteLine(" ");
 
-            Console.WriteLine("---------- Functions ----------");
             var functions = await GetFunctionsAsync(dbConfig);
-            foreach (var function in functions)
+            if (functions.Count > 0)
             {
-                Console.WriteLine($"{function.Name} Start");
-                models.Add(await GenerateFunctionModelAsync(function, dbConfig));
-                Console.WriteLine($"{function.Name} End");
+                Console.WriteLine("---------- Functions ----------");
+                foreach (var function in functions)
+                {
+                    Console.WriteLine($"{function.Name} Start");
+                    models.Add(await GenerateFunctionModelAsync(function, dbConfig));
+                    Console.WriteLine($"{function.Name} End");
+                }
+                Console.WriteLine(" ");
             }
-            Console.WriteLine(" ");
-        }
-        if (Config.CreateDbContext)
-        {
-            Console.WriteLine("---------- DbContext ----------");
-            await GenerateDbContextAsync(models);
+            if (Config.CreateDbContext)
+            {
+                Console.WriteLine("---------- DbContext ----------");
+                await GenerateDbContextAsync(models);
+            }
         }
     }
 
