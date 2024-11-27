@@ -10,6 +10,7 @@ public class ORMGenerator
     protected virtual ORMKustoDbContext DbContext { get; set; }
     protected const string NewLine = "\n";
     protected const string TAB = "    ";
+    private Dictionary<string, int> _modelsNames = new();
 
     public ORMGenerator(ORMGeneratorConfig config)
     {
@@ -75,7 +76,7 @@ public class ORMGenerator
             $"{{",
 
             // ctor
-            $"{TAB}public {Config.DbContextName}(IKustoDbContextExecutor executor) : base(executor)",
+            $"{TAB}public {Config.DbContextName}(IKustoDbContextExecutor<{Config.DbContextName}> executor) : base(executor)",
             $"{TAB}{{",
             $"{TAB}}}",
             "",
@@ -115,13 +116,14 @@ public class ORMGenerator
 
     protected virtual async Task<ORMGenaratedModel> GenerateFunctionModelAsync(ShowFunctionsResult function, ORMGeneratorDatabaseConfig dbConfig)
     {
+        var typeName = GetModelName(function.Name);
         var csharpParams = string.Join(", ", function.ParametersItems.Select(x => $"{x.Type} {x.Name}"));
         var kqlParams = string.Join(", ", function.ParametersItems.Select(x => $"{{{x.Name}.GetKQLValue()}}"));
 
         var usings = new List<string> { "System" };
         var lines = new List<string>
         {
-            $"public partial class {function.Name}",
+            $"public partial class {typeName}",
             $"{{",
         };
         var functionColumns = await GetFunctionSchemaAsync(function, dbConfig);
@@ -135,13 +137,13 @@ public class ORMGenerator
             ? Path.Combine(Config.ModelsFolderPath, dbConfig.ModelSubFolderName)
             : Config.ModelsFolderPath;
         if (!Directory.Exists(modelFolder)) { Directory.CreateDirectory(modelFolder); }
-        var filePath = Path.Combine(modelFolder, $"{function.Name}.cs");
+        var filePath = Path.Combine(modelFolder, $"{typeName}.cs");
         await File.WriteAllTextAsync(filePath, fileContent);
         return new()
         {
-            TypeName = function.Name,
+            TypeName = typeName,
+            TableOrFunctionDeclaration = $"{typeName}({csharpParams})",
             KQL = $"{function.Name}({kqlParams})",
-            TableOrFunctionDeclaration = $"{function.Name}({csharpParams})"
         };
     }
 
@@ -155,10 +157,11 @@ public class ORMGenerator
 
     protected virtual async Task<ORMGenaratedModel> GenerateTableModelAsync(ORMGeneratorTable table, ORMGeneratorDatabaseConfig dbConfig)
     {
+        var typeName = GetModelName(table.Name);
         var usings = new List<string> { "System" };
         var lines = new List<string>
         {
-            $"public partial class {table.Name}",
+            $"public partial class {typeName}",
             $"{{",
         };
         foreach (var column in table.Columns)
@@ -171,13 +174,13 @@ public class ORMGenerator
             ? Path.Combine(Config.ModelsFolderPath, dbConfig.ModelSubFolderName)
             : Config.ModelsFolderPath;
         if (!Directory.Exists(modelFolder)) { Directory.CreateDirectory(modelFolder); }
-        var filePath = Path.Combine(modelFolder, $"{table.Name}.cs");
+        var filePath = Path.Combine(modelFolder, $"{typeName}.cs");
         await File.WriteAllTextAsync(filePath, fileContent);
         return new()
         {
-            TypeName = table.Name,
+            TypeName = typeName,
+            TableOrFunctionDeclaration = typeName,
             KQL = table.Name,
-            TableOrFunctionDeclaration = table.Name,
         };
     }
 
@@ -300,4 +303,16 @@ public class ORMGenerator
         "dynamic" => "dynamic({})",
         _ => "null",
     };
+
+    public string GetModelName(string name)
+    {
+        if (!_modelsNames.ContainsKey(name))
+        {
+            _modelsNames[name] = 1;
+            return name;
+        }
+        var finalName = name + _modelsNames[name];
+        _modelsNames[name]++;
+        return finalName;
+    }
 }
