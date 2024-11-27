@@ -131,7 +131,7 @@ public class ORMGenerator
         var functionColumns = await GetFunctionSchemaAsync(function, dbConfig);
         foreach (var column in functionColumns)
         {
-            GenerateProperty(function.Name, dbConfig, lines, column.ColumnName, column.DataType);
+            GenerateProperty(function.Name, dbConfig, lines, column.DataType, column.ColumnName);
         }
         lines.Add($"}}");
         var fileContent = WrapContentWithNamespaceAndUsing(
@@ -179,7 +179,7 @@ public class ORMGenerator
         }
         res.Add(declaration);
         res.Add("{");
-        res.AddRange(modification.BodyExtraLines);
+        res.AddRange(modification.BodyExtraLines.Select(x => $"{TAB}{x}"));
         return res;
     }
 
