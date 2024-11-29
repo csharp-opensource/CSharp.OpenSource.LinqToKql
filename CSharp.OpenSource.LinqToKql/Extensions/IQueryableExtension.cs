@@ -54,4 +54,11 @@ public static class IQueryableExtension
         kql.TableOrKQL = tableOrKQL;
         return kql.Clone<S>(null);
     }
+
+    public static ILinqToKqlProvider<T> WithRetry<T>(this IQueryable<T> q, Func<Exception, Task<bool>> shouldRetry)
+    {
+        var kql = q.AsKQL();
+        kql.ShouldRetry = shouldRetry;
+        return kql;
+    }
 }

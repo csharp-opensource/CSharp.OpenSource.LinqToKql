@@ -14,13 +14,15 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
     public Expression Expression => _expression;
     public IQueryProvider Provider => this;
     protected ILinqToKqlProviderExecutor ProviderExecutor;
+    public Func<Exception, Task<bool>>? ShouldRetry { get; set; }
 
     public LinqToKqlProvider(
         string tableOrKQL,
         Expression? expression,
         ILinqToKqlProviderExecutor providerExecutor,
         LinqToKQLQueryTranslatorConfig? config = null,
-        string? defaultDbName = null)
+        string? defaultDbName = null,
+        Func<Exception, Task<bool>>? shouldRetry = null)
     {
         TableOrKQL = tableOrKQL;
         _expression = expression ?? Expression.Constant(this);
@@ -28,6 +30,7 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
         config ??= new();
         Translator = new(config);
         DefaultDbName = defaultDbName;
+        ShouldRetry = shouldRetry;
     }
 
     public virtual object? Execute(Expression expression)
@@ -36,11 +39,23 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
     public virtual TResult Execute<TResult>(Expression expression)
         => ExecuteAsync<TResult>(expression).GetAwaiter().GetResult();
 
-    public virtual Task<TResult> ExecuteAsync<TResult>(Expression expression)
+    public virtual async Task<TResult> ExecuteAsync<TResult>(Expression expression)
     {
         if (ProviderExecutor == null) { throw new InvalidOperationException("ProviderExecutor is not set."); }
         var kql = TranslateToKQL(expression);
-        return ProviderExecutor.ExecuteAsync<TResult>(kql, DefaultDbName);
+        try
+        {
+            return await ProviderExecutor.ExecuteAsync<TResult>(kql, DefaultDbName);
+        }
+        catch (Exception ex) 
+        {
+            var shouldRetry = ShouldRetry == null ? false : await ShouldRetry(ex);
+            if (shouldRetry) 
+            {
+                return await ProviderExecutor.ExecuteAsync<TResult>(kql, DefaultDbName);
+            }
+            throw;
+        }
     }
 
     public virtual string TranslateToKQL(Expression? expression = null)
@@ -50,7 +65,14 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
         => Clone<TElement>(expression);
 
     public virtual LinqToKqlProvider<S> Clone<S>(Expression? expression = null)
-        => new LinqToKqlProvider<S>(TableOrKQL, expression, ProviderExecutor, Translator.Config, DefaultDbName);
+        => new LinqToKqlProvider<S>(
+                TableOrKQL,
+                expression,
+                ProviderExecutor,
+                Translator.Config,
+                DefaultDbName,
+                ShouldRetry
+           );
 
     public virtual async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
@@ -65,4 +87,5 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
     protected virtual IEnumerator<T> GetGenericEnumerator() => Provider.Execute<List<T>>(Expression).GetEnumerator();
     public virtual IEnumerator<T> GetEnumerator() => GetGenericEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetGenericEnumerator();
+    public object Clone() => Clone<T>();
 }
