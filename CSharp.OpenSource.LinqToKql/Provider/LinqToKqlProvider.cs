@@ -13,8 +13,8 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
     private readonly Expression _expression;
     public Expression Expression => _expression;
     public IQueryProvider Provider => this;
-    protected ILinqToKqlProviderExecutor ProviderExecutor;
-    public Func<Exception, Task<bool>>? ShouldRetry { get; set; }
+    public ILinqToKqlProviderExecutor ProviderExecutor { get; }
+    public Func<ILinqToKqlProvider, Exception, Task<bool>>? ShouldRetry { get; set; }
 
     public LinqToKqlProvider(
         string tableOrKQL,
@@ -22,7 +22,7 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
         ILinqToKqlProviderExecutor providerExecutor,
         LinqToKQLQueryTranslatorConfig? config = null,
         string? defaultDbName = null,
-        Func<Exception, Task<bool>>? shouldRetry = null)
+        Func<ILinqToKqlProvider, Exception, Task<bool>>? shouldRetry = null)
     {
         TableOrKQL = tableOrKQL;
         _expression = expression ?? Expression.Constant(this);
@@ -49,7 +49,7 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
         }
         catch (Exception ex) 
         {
-            var shouldRetry = ShouldRetry == null ? false : await ShouldRetry(ex);
+            var shouldRetry = ShouldRetry == null ? false : await ShouldRetry(this, ex);
             if (shouldRetry) 
             {
                 return await ProviderExecutor.ExecuteAsync<TResult>(kql, DefaultDbName);
