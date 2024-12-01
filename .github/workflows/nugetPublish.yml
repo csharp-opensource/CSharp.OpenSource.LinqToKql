@@ -28,6 +28,7 @@ jobs:
           # Remove 'v' prefix if exists
           CLEAN_TAG_NAME=${TAG_NAME#v}
           echo "tag_name=${CLEAN_TAG_NAME}" >> $GITHUB_ENV
+          echo "new tag from tags ${CLEAN_TAG_NAME}"
 
       - name: Nuget Package And Upload
         uses: actions-opensource/publish-nuget@v5
