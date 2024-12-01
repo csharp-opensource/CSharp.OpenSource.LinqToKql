@@ -147,7 +147,7 @@ public abstract class LinqToKQLTranslatorBase
                 NewArrayExpression newArrayExpression => $"({string.Join(", ", newArrayExpression.Expressions.Select(BuildFilter))})",
                 NewExpression newExpression => Expression.Lambda(newExpression).Compile().DynamicInvoke().GetKQLValue(),
                 ConstantExpression constant => constant.Value.GetKQLValue(),
-                _ => throw new NotSupportedException($"Expression type {expression.GetType()} is not supported."),
+                _ => throw new NotSupportedException($"Expression type {expression.GetType()}, {expression.NodeType} is not supported."),
             };
 
     private string BuildFilterCustomMethodCall(MethodCallExpression methodCall)
