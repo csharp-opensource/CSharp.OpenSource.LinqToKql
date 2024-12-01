@@ -140,7 +140,7 @@ public abstract class LinqToKQLTranslatorBase
     protected string BuildFilter(Expression expression)
             => expression switch
             {
-                MethodCallExpression methodCall when methodCall.Method.Name == nameof(string.Contains) => BuildFilterCustomMethodCall(methodCall),
+                MethodCallExpression methodCall => BuildFilterCustomMethodCall(methodCall),
                 UnaryExpression unaryExpression when unaryExpression.NodeType == ExpressionType.Not => $"!({BuildFilter(unaryExpression.Operand)})",
                 BinaryExpression binary => BuildBinaryOperation(binary),
                 MemberExpression member => BuildMemberExpression(member),
