@@ -2,10 +2,9 @@
 
 namespace CSharp.OpenSource.LinqToKql.Provider;
 
-public interface IKustoDbContext
+public interface IKustoDbContext : ILinqToKqlProvider
 {
     LinqToKQLQueryTranslatorConfig Config { get; }
-    ILinqToKqlProviderExecutor ProviderExecutor { get; }
 
     LinqToKqlProvider<T> CreateQuery<T>(string tableOrKQL, string? database = null);
 }

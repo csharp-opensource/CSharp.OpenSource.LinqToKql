@@ -32,6 +32,15 @@ public static class IQueryableExtension
         return kqlQ;
     }
 
+    public static ILinqToKqlProvider<S> AsKQL<S>(this IQueryable q)
+    {
+        if (q is not ILinqToKqlProvider kqlQ)
+        {
+            throw new InvalidOperationException($"{q.GetType().Name} is not implement {nameof(ILinqToKqlProvider)}");
+        }
+        return kqlQ.Clone<S>();
+    }
+
     public static ILinqToKqlProvider<T> WithDbName<T>(this IQueryable<T> q, string dbName)
     {
         var kql = q.AsKQL();
