@@ -140,7 +140,7 @@ public abstract class LinqToKQLTranslatorBase
     protected string BuildFilter(Expression expression)
             => expression switch
             {
-                MethodCallExpression methodCall when methodCall.Method.Name == nameof(string.Contains) => $"{BuildFilter(methodCall.Arguments[1])} has {BuildFilter(methodCall.Arguments[0])}",
+                MethodCallExpression methodCall when methodCall.Method.Name == nameof(string.Contains) => BuildFilterCustomMethodCall(methodCall),
                 UnaryExpression unaryExpression when unaryExpression.NodeType == ExpressionType.Not => $"!({BuildFilter(unaryExpression.Operand)})",
                 BinaryExpression binary => BuildBinaryOperation(binary),
                 MemberExpression member => BuildMemberExpression(member),
@@ -149,6 +149,15 @@ public abstract class LinqToKQLTranslatorBase
                 ConstantExpression constant => constant.Value.GetKQLValue(),
                 _ => throw new NotSupportedException($"Expression type {expression.GetType()} is not supported."),
             };
+
+    private string BuildFilterCustomMethodCall(MethodCallExpression methodCall)
+    {
+        if (methodCall.Method.Name == nameof(string.Contains))
+        {
+            return $"{BuildFilter(methodCall.Arguments[1])} has {BuildFilter(methodCall.Arguments[0])}";
+        }
+        throw new NotSupportedException($"{nameof(BuildFilterCustomMethodCall)} - Method {methodCall.Method.Name} is not supported.");
+    }
 
     private string BuildMemberExpression(MemberExpression member)
     {
@@ -163,7 +172,7 @@ public abstract class LinqToKQLTranslatorBase
         {
             return SelectMembers(member);
         }
-        if (member.Expression != null) 
+        if (member.Expression != null)
         {
             return GetValue(member.Expression, member).ToString()!;
         }
