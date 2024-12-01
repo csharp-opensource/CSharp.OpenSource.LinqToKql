@@ -1,0 +1,47 @@
+name: Create Tag And Release
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name (in case not chosen the tag will be minor+1)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  createTagAndRelease:
+    runs-on: ubuntu-latest
+    name: Create Tag And Release And Push To Quay
+    permissions: write-all
+    outputs:
+      tagName: ${{ steps.setTag.outputs.tagName }}
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+        
+      - name: Set Tag Name
+        id: setTag
+        run: |
+          if [ -z "${{ github.event.inputs.tag_name }}" ]; then
+            git fetch --all --tags
+            newestTag=$(git describe --tags $(git rev-list --tags --max-count=1))
+            echo "newestTag=$newestTag"
+            newTag=$(echo "$newestTag" | awk -F. -v OFS=. 'NF==1{print ++$NF}; NF>1{if(length($NF+1)>length($NF))$(NF-1)++; $NF=sprintf("%0*d", length($NF), ($NF+1)%(10^length($NF))); print}')
+            echo "newTag=$newTag"
+            echo "newTagName=$newTag" >> $GITHUB_ENV
+            echo "::set-output name=tagName::$newTag"
+          else
+            echo "newTagName=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
+            echo "::set-output name=tagName::${{ github.event.inputs.tag_name }}"
+          fi
+
+      - name: Create tag & Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ ${{ env.newTagName }} =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            gh release create ${{ env.newTagName }} --latest --title ${{ env.newTagName }} --generate-notes
+          else
+            gh release create v${{ env.newTagName }} --prerelease --title v${{ env.newTagName }} --generate-notes
+          fi
