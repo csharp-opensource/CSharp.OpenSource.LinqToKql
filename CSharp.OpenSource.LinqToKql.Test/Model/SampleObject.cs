@@ -13,5 +13,6 @@ public class SampleObject
     public string Description { get; set; }
     public string Type { get; set; }
     public long Value { get; set; }
+    public List<long> Numbers { get; set; }
     public SampleObject2 Nested { get; set; }
 }

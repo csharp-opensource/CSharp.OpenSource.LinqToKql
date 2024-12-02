@@ -20,7 +20,7 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public void Translate_ShouldHandleWhereWitContains()
         => AssertQuery(
             _q.Where(x => new string[] { "name1", "name2", "name3" }.Contains(x.Name)),
-            [_tableName, "where Name has ('name1', 'name2', 'name3')"]
+            [_tableName, "where Name in ('name1', 'name2', 'name3')"]
         );
 
     [Fact]
@@ -92,4 +92,60 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
             [_tableName, $"where TimeOnly > timespan({new TimeOnly(22, 1, 1):HH:mm:ss.f})", "project Date, Description"]
         );
     }
+
+    [Fact]
+    public void Translate_WhereListIn() 
+        => AssertQuery(
+            _q.Where(x => x.Numbers.Contains(1)).Select(x => new { x.Date, x.Description }),
+            [_tableName, $"where Numbers in (1)", "project Date, Description"]
+        );
+
+    [Fact]
+    public void Translate_WhereListNotIn() 
+        => AssertQuery(
+            _q.Where(x => !x.Numbers.Contains(1)).Select(x => new { x.Date, x.Description }),
+            [_tableName, $"where !(Numbers in (1))", "project Date, Description"]
+        );
+
+    [Fact]
+    public void Translate_WhereStringIn() 
+        => AssertQuery(
+            _q.Where(x => x.Name.Contains("c#")).Select(x => new { x.Date, x.Description }),
+            [_tableName, $"where Name has_cs 'c#'", "project Date, Description"]
+        );
+
+    [Fact]
+    public void Translate_WhereStringNotIn() 
+        => AssertQuery(
+            _q.Where(x => !x.Name.Contains("c#")).Select(x => new { x.Date, x.Description }),
+            [_tableName, $"where !(Name has_cs 'c#')", "project Date, Description"]
+        );
+
+    [Fact]
+    public void Translate_WhereStringStartsWith() 
+        => AssertQuery(
+            _q.Where(x => x.Name.StartsWith("c#")).Select(x => new { x.Date, x.Description }),
+            [_tableName, $"where Name startswith_cs 'c#'", "project Date, Description"]
+        );
+
+    [Fact]
+    public void Translate_WhereStringNotStartsWith() 
+        => AssertQuery(
+            _q.Where(x => !x.Name.StartsWith("c#")).Select(x => new { x.Date, x.Description }),
+            [_tableName, $"where !(Name startswith_cs 'c#')", "project Date, Description"]
+        );
+
+    [Fact]
+    public void Translate_WhereStringEndsWith() 
+        => AssertQuery(
+            _q.Where(x => x.Name.EndsWith("c#")).Select(x => new { x.Date, x.Description }),
+            [_tableName, $"where Name endswith_cs 'c#'", "project Date, Description"]
+        );
+
+    [Fact]
+    public void Translate_WhereStringNotEndsWith() 
+        => AssertQuery(
+            _q.Where(x => !x.Name.EndsWith("c#")).Select(x => new { x.Date, x.Description }),
+            [_tableName, $"where !(Name endswith_cs 'c#')", "project Date, Description"]
+        );
 }

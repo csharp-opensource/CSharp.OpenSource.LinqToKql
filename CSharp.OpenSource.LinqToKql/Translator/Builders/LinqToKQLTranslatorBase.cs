@@ -152,11 +152,17 @@ public abstract class LinqToKQLTranslatorBase
 
     private string BuildFilterCustomMethodCall(MethodCallExpression methodCall)
     {
-        if (methodCall.Method.Name == nameof(string.Contains))
+        var methodName = methodCall.Method.Name;
+        var leftSide = methodCall.Arguments.Count > 1 ? methodCall.Arguments[1] : methodCall.Object!;
+        return methodName switch
         {
-            return $"{BuildFilter(methodCall.Arguments[1])} has {BuildFilter(methodCall.Arguments[0])}";
-        }
-        throw new NotSupportedException($"{nameof(BuildFilterCustomMethodCall)} - Method {methodCall.Method.Name} is not supported.");
+            nameof(string.Contains)  when methodCall.Method.DeclaringType == typeof(string) => $"{BuildFilter(leftSide)} has_cs {BuildFilter(methodCall.Arguments[0])}",
+            nameof(Enumerable.Contains) => $"{BuildFilter(leftSide)} in ({BuildFilter(methodCall.Arguments[0]).TrimStart('(').TrimEnd(')')})",
+            nameof(string.StartsWith) => $"{BuildFilter(leftSide)} startswith_cs {BuildFilter(methodCall.Arguments[0])}",
+            nameof(string.EndsWith) => $"{BuildFilter(leftSide)} endswith_cs {BuildFilter(methodCall.Arguments[0])}",
+            nameof(string.Equals) => $"{BuildFilter(leftSide)} == {BuildFilter(methodCall.Arguments[0])}",
+            _ => throw new NotSupportedException($"{nameof(BuildFilterCustomMethodCall)} - Method {methodCall.Method.Name} is not supported."),
+        };
     }
 
     private string BuildMemberExpression(MemberExpression member)
