@@ -1,4 +1,6 @@
-﻿namespace CSharp.OpenSource.LinqToKql.Test.Translator;
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace CSharp.OpenSource.LinqToKql.Test.Translator;
 
 public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
 {
@@ -94,58 +96,79 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     }
 
     [Fact]
-    public void Translate_WhereListIn() 
+    public void Translate_WhereListIn()
         => AssertQuery(
             _q.Where(x => x.Numbers.Contains(1)).Select(x => new { x.Date, x.Description }),
             [_tableName, $"where Numbers in (1)", "project Date, Description"]
         );
 
     [Fact]
-    public void Translate_WhereListNotIn() 
+    public void Translate_WhereListNotIn()
         => AssertQuery(
             _q.Where(x => !x.Numbers.Contains(1)).Select(x => new { x.Date, x.Description }),
             [_tableName, $"where !(Numbers in (1))", "project Date, Description"]
         );
 
     [Fact]
-    public void Translate_WhereStringIn() 
+    public void Translate_WhereStringIn()
         => AssertQuery(
             _q.Where(x => x.Name.Contains("c#")).Select(x => new { x.Date, x.Description }),
             [_tableName, $"where Name has_cs 'c#'", "project Date, Description"]
         );
 
     [Fact]
-    public void Translate_WhereStringNotIn() 
+    public void Translate_WhereStringNotIn()
         => AssertQuery(
             _q.Where(x => !x.Name.Contains("c#")).Select(x => new { x.Date, x.Description }),
             [_tableName, $"where !(Name has_cs 'c#')", "project Date, Description"]
         );
 
     [Fact]
-    public void Translate_WhereStringStartsWith() 
+    public void Translate_WhereStringStartsWith()
         => AssertQuery(
             _q.Where(x => x.Name.StartsWith("c#")).Select(x => new { x.Date, x.Description }),
             [_tableName, $"where Name startswith_cs 'c#'", "project Date, Description"]
         );
 
     [Fact]
-    public void Translate_WhereStringNotStartsWith() 
+    public void Translate_WhereStringNotStartsWith()
         => AssertQuery(
             _q.Where(x => !x.Name.StartsWith("c#")).Select(x => new { x.Date, x.Description }),
             [_tableName, $"where !(Name startswith_cs 'c#')", "project Date, Description"]
         );
 
     [Fact]
-    public void Translate_WhereStringEndsWith() 
+    public void Translate_WhereStringEndsWith()
         => AssertQuery(
             _q.Where(x => x.Name.EndsWith("c#")).Select(x => new { x.Date, x.Description }),
             [_tableName, $"where Name endswith_cs 'c#'", "project Date, Description"]
         );
 
     [Fact]
-    public void Translate_WhereStringNotEndsWith() 
+    public void Translate_WhereStringNotEndsWith()
         => AssertQuery(
             _q.Where(x => !x.Name.EndsWith("c#")).Select(x => new { x.Date, x.Description }),
             [_tableName, $"where !(Name endswith_cs 'c#')", "project Date, Description"]
+        );
+
+    [Fact]
+    public void Translate_WhereStringLikeStartsWith()
+        => AssertQuery(
+            _q.Where(x => EF.Functions.Like(x.Name, "%na")).Select(x => new { x.Date, x.Description }),
+            [_tableName, $"where Name startswith_cs 'na'", "project Date, Description"]
+        );
+
+    [Fact]
+    public void Translate_WhereStringLikeEndsWith()
+        => AssertQuery(
+            _q.Where(x => EF.Functions.Like(x.Name, "na%")).Select(x => new { x.Date, x.Description }),
+            [_tableName, $"where Name endswith_cs 'na'", "project Date, Description"]
+        );
+
+    [Fact]
+    public void Translate_WhereStringLikeHas() 
+        => AssertQuery(
+            _q.Where(x => EF.Functions.Like(x.Name, "%na%")).Select(x => new { x.Date, x.Description }),
+            [_tableName, $"where Name has_cs 'na'", "project Date, Description"]
         );
 }
