@@ -156,13 +156,34 @@ public abstract class LinqToKQLTranslatorBase
         var leftSide = methodCall.Arguments.Count > 1 ? methodCall.Arguments[1] : methodCall.Object!;
         return methodName switch
         {
-            nameof(string.Contains)  when methodCall.Method.DeclaringType == typeof(string) => $"{BuildFilter(leftSide)} has_cs {BuildFilter(methodCall.Arguments[0])}",
+            nameof(string.Contains) when methodCall.Method.DeclaringType == typeof(string) => $"{BuildFilter(leftSide)} has_cs {BuildFilter(methodCall.Arguments[0])}",
             nameof(Enumerable.Contains) => $"{BuildFilter(leftSide)} in ({BuildFilter(methodCall.Arguments[0]).TrimStart('(').TrimEnd(')')})",
             nameof(string.StartsWith) => $"{BuildFilter(leftSide)} startswith_cs {BuildFilter(methodCall.Arguments[0])}",
             nameof(string.EndsWith) => $"{BuildFilter(leftSide)} endswith_cs {BuildFilter(methodCall.Arguments[0])}",
             nameof(string.Equals) => $"{BuildFilter(leftSide)} == {BuildFilter(methodCall.Arguments[0])}",
+            "Like" => HandleLike(methodCall, leftSide),
             _ => throw new NotSupportedException($"{nameof(BuildFilterCustomMethodCall)} - Method {methodCall.Method.Name} is not supported."),
         };
+
+        string HandleLike(MethodCallExpression methodCall, Expression leftSide)
+        {
+            var likeValue = BuildFilter(methodCall.Arguments[0]);
+            var filter = likeValue.Trim('%').GetKQLValue();
+            var leftSideKql = BuildFilter(leftSide);
+            if (likeValue.StartsWith("%") && likeValue.EndsWith("%"))
+            {
+                return $"{leftSideKql} has_cs {filter}";
+            }
+            if (likeValue.StartsWith("%"))
+            {
+                return $"{leftSideKql} startswith_cs {filter}";
+            }
+            if (likeValue.EndsWith("%"))
+            {
+                return $"{leftSideKql} endswith_cs {filter}";
+            }
+            throw new NotSupportedException($"{nameof(HandleLike)} - likeValue={likeValue} is not supported.");
+        }
     }
 
     private string BuildMemberExpression(MemberExpression member)
