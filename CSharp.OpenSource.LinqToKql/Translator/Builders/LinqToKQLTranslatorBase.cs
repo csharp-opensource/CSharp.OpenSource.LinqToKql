@@ -170,6 +170,7 @@ public abstract class LinqToKQLTranslatorBase
             var likeValueConst = methodCall.Arguments
                 .Where(x => x.NodeType == ExpressionType.Constant)
                 .Select(x => x as ConstantExpression)
+                .Where(x => !x!.Type.Name.Contains("DbFunctions"))
                 .OrderBy(x => x!.Type == typeof(string) ? 0 : 1)
                 .First();
             if (likeValueConst == null) { throw new NotSupportedException($"{nameof(HandleLike)} - likeValueConst is null."); }
