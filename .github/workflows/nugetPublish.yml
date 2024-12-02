@@ -1,7 +1,13 @@
 name: Nuget Publish
+
 on:
   release:
     types: [published]
+  workflow_run:
+    workflows: [Create Tag And Release]
+    types:
+      - completed
+
 jobs:
   build:
     runs-on: ubuntu-20.04
@@ -13,11 +19,22 @@ jobs:
       - name: Setup .Net
         uses: actions/setup-dotnet@v4
 
+      - name: Get Tag for workflow_run
+        if: ${{ github.event_name == 'workflow_run' }}
+        id: get-tag
+        run: |
+          git fetch --tags
+          TAG_NAME=$(git describe --tags --abbrev=0)
+          # Remove 'v' prefix if exists
+          CLEAN_TAG_NAME=${TAG_NAME#v}
+          echo "tag_name=${CLEAN_TAG_NAME}" >> $GITHUB_ENV
+          echo "new tag from tags ${CLEAN_TAG_NAME}"
+
       - name: Nuget Package And Upload
         uses: actions-opensource/publish-nuget@v5
         with:
           path: ./CSharp.OpenSource.LinqToKql
-          releaseVersion: ${{ github.event.release.tag_name }}
+          releaseVersion: ${{ github.event.release.tag_name || env.tag_name }}
           repoUrl: ${{ github.server_url }}/${{ github.repository }}
-          nugetToken: ${{secrets.NUGET_AUTH_TOKEN}}
+          nugetToken: ${{ secrets.NUGET_AUTH_TOKEN }}
           nugetSource: https://api.nuget.org/v3/index.json
