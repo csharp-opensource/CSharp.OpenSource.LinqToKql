@@ -167,7 +167,10 @@ public abstract class LinqToKQLTranslatorBase
 
         string HandleLike(MethodCallExpression methodCall, Expression leftSide)
         {
-            var likeValueConst = (methodCall.Arguments.First(x => x.NodeType == ExpressionType.Constant) as ConstantExpression);
+            var likeValueConst = methodCall.Arguments.Where(x => x.NodeType == ExpressionType.Constant)
+                .Select(x => x as ConstantExpression)
+                .OrderBy(x => x.Type == typeof(string) ? 0 : 1)
+                .First();
             if (likeValueConst == null) { throw new NotSupportedException($"{nameof(HandleLike)} - likeValueConst is null."); }
             var likeValue = likeValueConst.Value!.ToString()!;
             var filter = likeValue.Trim('%').GetKQLValue();
