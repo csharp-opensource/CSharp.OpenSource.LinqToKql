@@ -33,7 +33,7 @@ public class ORMGenerator
             Console.WriteLine($" Start Generate {dbConfig.DatabaseName}");
             Console.WriteLine("-------------------------");
             Console.WriteLine(" ");
-            models.Add(new() { DatabaseConfig = dbConfig, TypeName = "T", KQL = "", TableOrFunctionDeclaration = $"{dbConfig.ModelSubFolderName}<T>()" });
+            models.Add(new() { DatabaseConfig = dbConfig, TypeName = "T", KQL = "{kql}", TableOrFunctionDeclaration = $"{dbConfig.ModelSubFolderName}<T>(string kql = \"\")" });
             var tables = await GetTablesAsync(dbConfig);
             if (tables.Count > 0)
             {
