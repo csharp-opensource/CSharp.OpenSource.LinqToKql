@@ -59,11 +59,11 @@ public class ORMGenerator
                 }
                 Console.WriteLine(" ");
             }
-            if (Config.CreateDbContext)
-            {
-                Console.WriteLine("---------- DbContext ----------");
-                await GenerateDbContextAsync(models);
-            }
+        }
+        if (Config.CreateDbContext)
+        {
+            Console.WriteLine("---------- DbContext ----------");
+            await GenerateDbContextAsync(models);
         }
     }
 
