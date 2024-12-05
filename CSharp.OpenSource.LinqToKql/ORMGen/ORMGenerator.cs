@@ -28,12 +28,13 @@ public class ORMGenerator
         var models = new List<ORMGenaratedModel>();
         foreach (var dbConfig in Config.DatabaseConfigs)
         {
+            dbConfig.DatabaseDisplayName ??= dbConfig.DatabaseName;
             Console.WriteLine(" ");
             Console.WriteLine("-------------------------");
             Console.WriteLine($" Start Generate {dbConfig.DatabaseName}");
             Console.WriteLine("-------------------------");
             Console.WriteLine(" ");
-            models.Add(new() { DatabaseConfig = dbConfig, TypeName = "T", KQL = "{kql}", TableOrFunctionDeclaration = $"{dbConfig.ModelSubFolderName}<T>(string kql = \"\")" });
+            models.Add(new() { DatabaseConfig = dbConfig, TypeName = "T", KQL = "{kql}", TableOrFunctionDeclaration = $"{dbConfig.DatabaseDisplayName}<T>(string kql = \"\")" });
             var tables = await GetTablesAsync(dbConfig);
             if (tables.Count > 0)
             {
@@ -146,10 +147,7 @@ public class ORMGenerator
             Config.ModelsNamespace,
             referenceHint: $"database('{dbConfig.DatabaseName}').{function.Name}{function.Parameters}"
         );
-        var modelFolder = dbConfig.ModelSubFolderName != null
-            ? Path.Combine(Config.ModelsFolderPath, dbConfig.ModelSubFolderName)
-            : Config.ModelsFolderPath;
-        if (!Directory.Exists(modelFolder)) { Directory.CreateDirectory(modelFolder); }
+        var modelFolder = GetDbModelsFolder(dbConfig);
         var filePath = Path.Combine(modelFolder, $"{typeName}.cs");
         await File.WriteAllTextAsync(filePath, fileContent);
         return new()
@@ -159,6 +157,15 @@ public class ORMGenerator
             KQL = $"{function.Name}({kqlParams})",
             DatabaseConfig = dbConfig,
         };
+    }
+
+    private string GetDbModelsFolder(ORMGeneratorDatabaseConfig dbConfig)
+    {
+        var modelFolder = Config.DatabaseConfigs.Count > 1
+            ? Path.Combine(Config.ModelsFolderPath, dbConfig.DatabaseDisplayName)
+            : Config.ModelsFolderPath;
+        if (!Directory.Exists(modelFolder)) { Directory.CreateDirectory(modelFolder); }
+        return modelFolder;
     }
 
     private List<string> GetModelDeclarationLines(string typeName, string name, string databaseName)
@@ -234,10 +241,7 @@ public class ORMGenerator
             Config.ModelsNamespace,
             referenceHint: $"database('{dbConfig.DatabaseName}').{table.Name}"
         );
-        var modelFolder = dbConfig.ModelSubFolderName != null
-            ? Path.Combine(Config.ModelsFolderPath, dbConfig.ModelSubFolderName)
-            : Config.ModelsFolderPath;
-        if (!Directory.Exists(modelFolder)) { Directory.CreateDirectory(modelFolder); }
+        var modelFolder = GetDbModelsFolder(dbConfig);
         var filePath = Path.Combine(modelFolder, $"{typeName}.cs");
         await File.WriteAllTextAsync(filePath, fileContent);
         return new()
@@ -276,16 +280,16 @@ public class ORMGenerator
         functions = ApplyFilters(functions, t => t.Name, filters);
         foreach (var function in functions)
         {
-            function.ParametersItems = function.Parameters.TrimStart('(').TrimEnd(')')
+            function.ParametersItems = function.Parameters?.TrimStart('(').TrimEnd(')')
               .Split(',')
               .Where(x => !string.IsNullOrEmpty(x)) // solve empty funcs
-              .Select(x => x.Split(':'))
+              .Select(x => x.Trim().Split(':').Select(x => x.Trim()).ToArray())
               .Select(x => new ORMGeneratorFunctionParam
               {
                   Name = x[0],
                   Type = x[1],
               })
-              .ToList();
+              .ToList() ?? new();
         }
         return functions;
     }
@@ -341,7 +345,7 @@ public class ORMGenerator
     };
 
     // https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/scalar-data-types/index.md
-    protected virtual string DataTypeTranslate(string kustoDataType)
+    public virtual string DataTypeTranslate(string kustoDataType)
     {
         var type = kustoDataType.Replace("System.", "");
         type = type switch
