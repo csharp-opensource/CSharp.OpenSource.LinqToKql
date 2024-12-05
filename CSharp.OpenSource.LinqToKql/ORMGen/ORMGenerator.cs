@@ -21,10 +21,8 @@ public class ORMGenerator
 
     public virtual async Task GenerateAsync()
     {
+        PrepareConfig();
         PrepareFolders();
-        Config.ModelsNamespace ??= Config.Namespace ?? throw new ArgumentNullException(nameof(Config.ModelsNamespace));
-        Config.DbContextNamespace ??= Config.Namespace ?? throw new ArgumentNullException(nameof(Config.DbContextNamespace));
-        Config.DbContextName ??= $"My{nameof(ORMKustoDbContext)}";
         var models = new List<ORMGenaratedModel>();
         foreach (var dbConfig in Config.DatabaseConfigs)
         {
@@ -65,6 +63,20 @@ public class ORMGenerator
         {
             Console.WriteLine("---------- DbContext ----------");
             await GenerateDbContextAsync(models);
+        }
+    }
+
+    private void PrepareConfig()
+    {
+        Config.ModelsNamespace ??= Config.Namespace ?? throw new ArgumentNullException(nameof(Config.ModelsNamespace));
+        Config.DbContextNamespace ??= Config.Namespace ?? throw new ArgumentNullException(nameof(Config.DbContextNamespace));
+        Config.DbContextName ??= $"My{nameof(ORMKustoDbContext)}";
+        Config.ModelsFolderPath ??= "Models";
+        Config.ModelsFolderPath = Config.ModelsFolderPath.Replace("\\", "/");
+        Config.DbContextFolderPath = Config.DbContextFolderPath.Replace("\\", "/");
+        if (!Config.ModelsFolderPath.Contains("/") && Config.DbContextFolderPath.Contains("/"))
+        {
+            Config.ModelsFolderPath = Path.Combine(Config.DbContextFolderPath, Config.ModelsFolderPath);
         }
     }
 

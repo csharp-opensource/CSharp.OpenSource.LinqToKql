@@ -3,6 +3,61 @@
 [![Nuget Package](https://github.com/csharp-opensource/CSharp.OpenSource.LinqToKql/actions/workflows/nugetPublish.yml/badge.svg)](https://github.com/csharp-opensource/CSharp.OpenSource.LinqToKql/actions/workflows/nugetPublish.yml)
 [![NuGet Version](https://img.shields.io/nuget/v/CSharp.OpenSource.LinqToKql.svg)](https://www.nuget.org/packages/CSharp.OpenSource.LinqToKql/)
 
+# Example of using ORMGenerator
+
+[Live Example](https://github.com/csharp-opensource/CSharp.OpenSource.LinqToKql/blob/master//Samples/ORMGeneratorTest/)
+
+## Generate
+```csharp
+        var providerExecutor = _mockExecutor.Object;
+        var ormGenerator = new ORMGenerator(new()
+        {
+            ProviderExecutor = providerExecutor,
+            ModelsFolderPath = "../../../../ORMGeneratorTests/Models",
+            DbContextFolderPath = "../../../../ORMGeneratorTests",
+            DbContextName = "AutoGenORMKustoDbContext",
+            Namespace = "AutoGen",
+            ModelsNamespace = "AutoGen",
+            DbContextNamespace = "AutoGen",
+            CreateDbContext = true,
+            CleanFolderBeforeCreate = true,
+            EnableNullable = true,
+            FileScopedNamespaces = true,
+            DatabaseConfigs = new List<ORMGeneratorDatabaseConfig>
+            {
+                new ORMGeneratorDatabaseConfig
+                {
+                    DatabaseName = DbName1,
+                    Filters = new ORMGeneratorFilterConfig()
+                },
+                new ORMGeneratorDatabaseConfig
+                {
+                    DatabaseName = DbName2,
+                    DatabaseDisplayName = "db2",
+                    Filters = new ORMGeneratorFilterConfig()
+                }
+            }
+        });
+        await _ormGenerator.GenerateAsync();
+        // output
+```
+## Usage
+```csharp
+using AutoGen;
+using CSharp.OpenSource.LinqToKql.Extensions;
+using CSharp.OpenSource.LinqToKql.Http;
+using Microsoft.Extensions.DependencyInjection;
+
+var services = new ServiceCollection();
+services.AddKustoDbContext<AutoGenORMKustoDbContext, KustoHttpClient>(sp => new KustoHttpClient("mycluster", "auth", "dbName"));
+var provider = services.BuildServiceProvider();
+var dbContext = provider.GetRequiredService<AutoGenORMKustoDbContext>();
+
+dbContext.TestTable1.Where(x => x.TestColumn == "test").ToList();
+dbContext.db2<object>("customQuery").ToList();
+dbContext.func1().ToList();
+dbContext.func2("name", "lastName").ToList();
+```
 
 # Example of using KustoDbContext
 ```csharp
