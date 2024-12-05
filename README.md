@@ -39,7 +39,7 @@
             }
         });
         await _ormGenerator.GenerateAsync();
-        // output
+        // output example https://github.com/csharp-opensource/CSharp.OpenSource.LinqToKql/tree/master/Samples/ORMGeneratorTest
 ```
 ## Usage
 ```csharp
