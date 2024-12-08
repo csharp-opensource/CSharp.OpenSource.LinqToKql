@@ -1,4 +1,6 @@
-﻿namespace CSharp.OpenSource.LinqToKql.Extensions;
+﻿using System.Collections;
+
+namespace CSharp.OpenSource.LinqToKql.Extensions;
 
 public static class ObjectExtension
 {
@@ -11,6 +13,7 @@ public static class ObjectExtension
             DateTime dateTime => $"datetime({dateTime:yyyy-MM-dd HH:mm:ss.f})",
             DateOnly date => $"datetime({date:yyyy-MM-dd})",
             string str => $"'{str.Replace("'", "\\'")}'",
+            IEnumerable enumerable => $"({string.Join(", ", enumerable.Cast<object>().Select(GetKQLValue))})",
             _ => value?.ToString() ?? "null",
         };
 }
