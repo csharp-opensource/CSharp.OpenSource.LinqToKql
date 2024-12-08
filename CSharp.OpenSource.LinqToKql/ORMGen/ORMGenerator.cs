@@ -94,13 +94,17 @@ public class ORMGenerator
         {
             $"public partial class {Config.DbContextName} : {nameof(ORMKustoDbContext)}",
             $"{{",
-
-            // ctor
-            $"{TAB}public {Config.DbContextName}(IKustoDbContextExecutor<{Config.DbContextName}> executor) : base(executor)",
-            $"{TAB}{{",
-            $"{TAB}}}",
-            "",
         };
+        if (Config.DbContextCreateConstructor)
+        {
+            lines.AddRange(new List<string>
+            {
+                $"{TAB}public {Config.DbContextName}(IKustoDbContextExecutor<{Config.DbContextName}> executor) : base(executor)",
+                $"{TAB}{{",
+                $"{TAB}}}",
+                "",
+            });
+        }
 
         // props
         foreach (var (model, index) in models.Select((model, index) => (model, index)))

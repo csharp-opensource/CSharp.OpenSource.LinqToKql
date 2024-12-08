@@ -20,4 +20,5 @@ public class ORMGeneratorConfig
     public ILinqToKqlProviderExecutor ProviderExecutor { get; set; }
     public bool FileScopedNamespaces { get; set; } = true;
     public bool EnableNullable { get; set; } = true;
+    public bool DbContextCreateConstructor { get; set; } = true;
 }
