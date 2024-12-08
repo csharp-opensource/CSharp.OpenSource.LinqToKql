@@ -107,7 +107,7 @@ public class ORMGenerator
         {
             if (index != 0) { lines.Add(""); }
             lines.Add($"{TAB}public virtual IQueryable<{model.TypeName}> {model.TableOrFunctionDeclaration}");
-            lines.Add($"{TAB}{TAB}=> CreateQuery<{model.TypeName}>($\"{model.KQL}\", \"{model.DatabaseConfig.DatabaseName}\");");
+            lines.Add($"{TAB}{TAB}=> CreateQuery<{model.TypeName}>($\"{model.KQL}\", GetDatabaseName(\"{model.DatabaseConfig.DatabaseName}\"));");
         }
         lines.Add($"}}");
         await File.WriteAllTextAsync(Config.DbContextFilePath, WrapContentWithNamespaceAndUsing(lines, usings, Config.DbContextNamespace));

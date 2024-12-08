@@ -9,9 +9,9 @@ public abstract class KustoDbContext : IKustoDbContext
     public ILinqToKqlProviderExecutor ProviderExecutor => _executor.Executor;
     private LinqToKQLQueryTranslatorConfig? _config;
     public LinqToKQLQueryTranslatorConfig Config => _config ??= GetConfig();
-    private LinqToKqlProvider<object> dummyProvider => new(string.Empty, expression: null, providerExecutor: ProviderExecutor, defaultDbName: null);
+    private LinqToKqlProvider<object> dummyProvider => new(string.Empty, expression: null, providerExecutor: ProviderExecutor, defaultDbName: DefaultDbName, config: GetConfig());
 
-    public string? DefaultDbName { get => ""; set => _ = value; }
+    public string? DefaultDbName { get; set; }
     public string TableOrKQL { get => ""; set => _ = value; }
 
     public LinqToKQLQueryTranslator Translator => throw new NotImplementedException();
@@ -26,7 +26,7 @@ public abstract class KustoDbContext : IKustoDbContext
     }
 
     public LinqToKqlProvider<T> CreateQuery<T>(string tableOrKQL, string? database = null)
-        => new LinqToKqlProvider<T>(tableOrKQL, expression: null, providerExecutor: ProviderExecutor, defaultDbName: database);
+        => new LinqToKqlProvider<T>(tableOrKQL, expression: null, providerExecutor: ProviderExecutor, defaultDbName: database ?? DefaultDbName, config: GetConfig());
 
     public LinqToKqlProvider<S> Clone<S>(Expression? expression = null) 
         => dummyProvider.Clone<S>(expression);

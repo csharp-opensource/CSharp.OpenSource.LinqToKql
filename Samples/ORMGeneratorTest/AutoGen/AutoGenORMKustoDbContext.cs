@@ -14,20 +14,20 @@ public partial class AutoGenORMKustoDbContext : ORMKustoDbContext
     }
 
     public virtual IQueryable<T> TestDatabase1<T>(string kql = "")
-        => CreateQuery<T>($"{kql}", "TestDatabase1");
+        => CreateQuery<T>($"{kql}", GetDatabaseName("TestDatabase1"));
 
     public virtual IQueryable<TestTable> TestTable
-        => CreateQuery<TestTable>($"TestTable", "TestDatabase1");
+        => CreateQuery<TestTable>($"TestTable", GetDatabaseName("TestDatabase1"));
 
     public virtual IQueryable<func1> func1()
-        => CreateQuery<func1>($"func1()", "TestDatabase1");
+        => CreateQuery<func1>($"func1()", GetDatabaseName("TestDatabase1"));
 
     public virtual IQueryable<T> db2<T>(string kql = "")
-        => CreateQuery<T>($"{kql}", "TestDatabase2");
+        => CreateQuery<T>($"{kql}", GetDatabaseName("TestDatabase2"));
 
     public virtual IQueryable<TestTable1> TestTable1
-        => CreateQuery<TestTable1>($"TestTable", "TestDatabase2");
+        => CreateQuery<TestTable1>($"TestTable", GetDatabaseName("TestDatabase2"));
 
     public virtual IQueryable<func2> func2(string name, string lastName)
-        => CreateQuery<func2>($"func2({name.GetKQLValue()}, {lastName.GetKQLValue()})", "TestDatabase2");
+        => CreateQuery<func2>($"func2({name.GetKQLValue()}, {lastName.GetKQLValue()})", GetDatabaseName("TestDatabase2"));
 }
