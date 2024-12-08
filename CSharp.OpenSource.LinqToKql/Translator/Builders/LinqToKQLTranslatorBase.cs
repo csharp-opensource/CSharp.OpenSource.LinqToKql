@@ -103,7 +103,7 @@ public abstract class LinqToKQLTranslatorBase
         foreach (var binding in memberInitExpression.Bindings)
         {
             var name = binding.Member.Name;
-            var value = isAfterGroupBy
+            var value = isAfterGroupBy || Config.DisableNestedProjection
                 ? name
                 : SelectMembers(((MemberAssignment)binding).Expression);
             res.Add(new() { Name = name, Value = value });
