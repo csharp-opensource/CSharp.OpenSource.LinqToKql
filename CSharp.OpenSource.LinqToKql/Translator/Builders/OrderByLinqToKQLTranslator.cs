@@ -4,13 +4,13 @@ namespace CSharp.OpenSource.LinqToKql.Translator.Builders;
 
 public class OrderByLinqToKQLTranslator : LinqToKQLTranslatorBase
 {
-    public OrderByLinqToKQLTranslator(LinqToKQLQueryTranslatorConfig config) : base(config, new() { nameof(Enumerable.OrderBy), nameof(Enumerable.OrderByDescending) })
+    public OrderByLinqToKQLTranslator(LinqToKQLQueryTranslatorConfig config) : base(config, new() { nameof(Enumerable.OrderBy), nameof(Enumerable.OrderByDescending), nameof(Enumerable.ThenBy), nameof(Enumerable.ThenByDescending) })
     {
     }
 
     public override string Handle(MethodCallExpression methodCall, Expression? parent)
     {
-        return Handle(methodCall, methodCall.Method.Name == nameof(Enumerable.OrderByDescending));
+        return Handle(methodCall, methodCall.Method.Name == nameof(Enumerable.OrderByDescending) || methodCall.Method.Name == nameof(Enumerable.ThenByDescending));
     }
 
     public string Handle(MethodCallExpression methodCall, bool descending)
