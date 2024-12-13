@@ -5,14 +5,18 @@ namespace CSharp.OpenSource.LinqToKql.Translator.Builders
 {
     public class TaskLinqToKQLTranslator : LinqToKQLTranslatorBase
     {
-        public TaskLinqToKQLTranslator(LinqToKQLQueryTranslatorConfig config) : base(config, new() { nameof(Enumerable.Take), })
+        public TaskLinqToKQLTranslator(LinqToKQLQueryTranslatorConfig config) : base(config, new() { nameof(Enumerable.Take) })
         {
         }
 
         public override string Handle(MethodCallExpression methodCall, Expression? parent)
         {
             var count = ((ConstantExpression)methodCall.Arguments[1]).Value.GetKQLValue();
-            return $"take {count}";
+            return methodCall.Method.Name switch
+            {
+                nameof(Enumerable.Take) => $"take {count}",
+                _ => throw new NotSupportedException($"{GetType().Name} - Method {methodCall.Method.Name} is not supported.")
+            };
         }
     }
 }

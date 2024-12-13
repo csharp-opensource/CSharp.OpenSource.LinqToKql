@@ -53,4 +53,44 @@ public class GroupByTranslatorTests : LinqToKQLQueryTranslatorBaseTest
             [_tableName, "where Id == 1", "summarize Key=take_any(Date), Count=count() by Date"],
             new() { DisableNestedProjection = disableNestedProjection, }
         );
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Translate_ShouldHandleGroupByWithSum(bool disableNestedProjection)
+        => AssertQuery(
+            _q.GroupBy(x => x.Date).Select(g => new { Date = g.Key, Sum = g.Sum(x => x.Value) }),
+            [_tableName, "summarize Sum=sum(Value) by Date"],
+            new() { DisableNestedProjection = disableNestedProjection, }
+        );
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Translate_ShouldHandleGroupByWithAverage(bool disableNestedProjection)
+        => AssertQuery(
+            _q.GroupBy(x => x.Date).Select(g => new { Date = g.Key, Average = g.Average(x => x.Value) }),
+            [_tableName, "summarize Average=avg(Value) by Date"],
+            new() { DisableNestedProjection = disableNestedProjection, }
+        );
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Translate_ShouldHandleGroupByWithMin(bool disableNestedProjection)
+        => AssertQuery(
+            _q.GroupBy(x => x.Date).Select(g => new { Date = g.Key, Min = g.Min(x => x.Value) }),
+            [_tableName, "summarize Min=min(Value) by Date"],
+            new() { DisableNestedProjection = disableNestedProjection, }
+        );
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Translate_ShouldHandleGroupByWithMax(bool disableNestedProjection)
+        => AssertQuery(
+            _q.GroupBy(x => x.Date).Select(g => new { Date = g.Key, Max = g.Max(x => x.Value) }),
+            [_tableName, "summarize Max=max(Value) by Date"],
+            new() { DisableNestedProjection = disableNestedProjection, }
+        );
 }
