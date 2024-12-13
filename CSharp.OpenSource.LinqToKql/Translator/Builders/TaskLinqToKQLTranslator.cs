@@ -5,7 +5,7 @@ namespace CSharp.OpenSource.LinqToKql.Translator.Builders
 {
     public class TaskLinqToKQLTranslator : LinqToKQLTranslatorBase
     {
-        public TaskLinqToKQLTranslator(LinqToKQLQueryTranslatorConfig config) : base(config, new() { nameof(Enumerable.Take), nameof(Enumerable.Skip) })
+        public TaskLinqToKQLTranslator(LinqToKQLQueryTranslatorConfig config) : base(config, new() { nameof(Enumerable.Take) })
         {
         }
 
@@ -15,7 +15,6 @@ namespace CSharp.OpenSource.LinqToKql.Translator.Builders
             return methodCall.Method.Name switch
             {
                 nameof(Enumerable.Take) => $"take {count}",
-                nameof(Enumerable.Skip) => $"skip {count}",
                 _ => throw new NotSupportedException($"{GetType().Name} - Method {methodCall.Method.Name} is not supported.")
             };
         }
