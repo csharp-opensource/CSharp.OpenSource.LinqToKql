@@ -18,7 +18,7 @@ jobs:
 
     - name: Start local Kusto cluster
       run: |
-        docker-compose up -d
+        docker run -d -p 8080:8080 -p 8081:8081 microsoft/azure-kusto-emulator:latest
 
     - name: Set E2E_TESTING environment variable
       run: echo "E2E_TESTING=1" >> $GITHUB_ENV
