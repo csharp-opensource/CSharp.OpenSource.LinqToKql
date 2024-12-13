@@ -19,7 +19,7 @@ jobs:
 
     - name: Build
       run: |
-        dotnet build -clp:ErrorsOnly -- no-restore ./CSharp.OpenSource.LinqToKql.Test
+        dotnet build -clp:ErrorsOnly --no-restore ./CSharp.OpenSource.LinqToKql.Test
 
     - name: Run unit tests
       run: |
