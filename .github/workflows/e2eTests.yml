@@ -1,17 +1,20 @@
-name: Unit Tests
+name: End-to-End Tests
 
 on: [push, pull_request]
 
 jobs:
-  UnitTests:
+  e2eTests:
     runs-on: ubuntu-latest
-    name: Unit Tests
+    name: End-to-End Tests
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set E2E_TESTING environment variable
-      run: echo "E2E_TESTING=0" >> $GITHUB_ENV
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
 
-    - name: Run unit tests
+    - name: Set E2E_TESTING environment variable
+      run: echo "E2E_TESTING=1" >> $GITHUB_ENV
+
+    - name: Run end-to-end tests
       run: dotnet test ./CSharp.OpenSource.LinqToKql.Test
