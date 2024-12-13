@@ -18,9 +18,9 @@ jobs:
 
     - name: Start local Kusto cluster
       run: |
-        docker run -d -p 8080:8080 -p 8081:8081 microsoft/azure-kusto-emulator:latest
+        docker run -e ACCEPT_EULA=Y -m 4G -d -p 8080:8080 -t mcr.microsoft.com/azuredataexplorer/kustainer-linux:latest
 
-    - name: Set E2E_TESTING environment variable
+    - name: Set E2E_TESTING environment variables 
       run: echo "E2E_TESTING=1" >> $GITHUB_ENV
 
     - name: Run end-to-end tests
