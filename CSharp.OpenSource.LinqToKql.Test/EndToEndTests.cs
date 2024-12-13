@@ -1,6 +1,7 @@
 using CSharp.OpenSource.LinqToKql.Http;
 using CSharp.OpenSource.LinqToKql.Provider;
 using Microsoft.Extensions.DependencyInjection;
+using CSharp.OpenSource.LinqToKql.Extensions;
 
 namespace CSharp.OpenSource.LinqToKql.Test;
 
