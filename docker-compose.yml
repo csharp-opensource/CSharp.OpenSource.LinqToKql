@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  kusto-cluster:
+    image: microsoft/azure-kusto-emulator:latest
+    environment:
+      - ACCEPT_EULA=Y
+      - CLUSTER_NAME=localKustoCluster
+      - NODE_NAME=node1
+      - CLUSTER_TYPE=Dev
+    ports:
+      - "8080:8080"
+      - "8081:8081"
