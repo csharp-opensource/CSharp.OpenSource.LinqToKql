@@ -6,7 +6,7 @@ namespace CSharp.OpenSource.LinqToKql.Test;
 
 public class EndToEndTests
 {
-    private string _cluster = "https://myclusterUrl/";
+    private string _cluster = "https://localhost:8080";
     private string _auth = "myBearerToken";
     private string _defaultDbName = "myDatabaseName";
 
