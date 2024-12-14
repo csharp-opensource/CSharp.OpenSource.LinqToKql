@@ -5,7 +5,8 @@ on: [push, pull_request]
 jobs:
   e2eTests:
     runs-on: ubuntu-latest
-    container:
+    services:
+      kusto:
         image: ghcr.io/csharp-opensource/csharp.opensource.linqtokql-demo-cluster:master
         ports:
           - 8080:8080
@@ -14,6 +15,8 @@ jobs:
     - name: Verify Server is running
       run: curl -sS http://localhost:8080/health
 
+    - uses: actions/setup-dotnet@v4
+    
     - name: Checkout code
       uses: actions/checkout@v4
 

@@ -7,6 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Unit Tests
     steps:
+    - uses: actions/setup-dotnet@v4
+    
     - name: Checkout code
       uses: actions/checkout@v4
 
