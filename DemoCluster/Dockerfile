@@ -6,4 +6,5 @@ ENV TEMP=$TMP
 ENV TMPDIR=$TMP
 RUN yum install powershell -y
 COPY . .
+RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
