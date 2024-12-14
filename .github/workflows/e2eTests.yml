@@ -19,7 +19,7 @@ jobs:
     - name: Start local Kusto cluster
       working-directory: ./DemoCluster
       run: |
-         docker build -t kusto . && docker rm -f kusto && docker run -it --name kusto -p 8080:8080 kusto
+         docker build -t kusto . && docker run -it --name kusto -p 8080:8080 kusto
 
     - name: Set E2E_TESTING environment variables 
       run: echo "E2E_TESTING=1" >> $GITHUB_ENV
