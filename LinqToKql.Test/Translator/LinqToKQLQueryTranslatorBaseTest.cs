@@ -9,7 +9,13 @@ public abstract class LinqToKQLQueryTranslatorBaseTest
     protected LinqToKQLQueryTranslator GetTranslator(LinqToKQLQueryTranslatorConfig? config = null) => new(config);
     protected readonly string _tableName = "SampleTable";
     protected readonly IQueryable<SampleObject> _q = new[] { new SampleObject { } }.AsQueryable();
-    protected readonly KustoHttpClient _client = new("http://localhost:8080", "", "TestDatabase1");
+    protected readonly KustoHttpClient _client;
+
+    protected LinqToKQLQueryTranslatorBaseTest()
+    {
+        _client = new("http://localhost:8080", "", "TestDatabase1");
+        _client.HttpClient.Timeout = TimeSpan.FromSeconds(3);
+    }
 
     protected void AssertQuery<T>(IQueryable<T> queryable, string[] expectedArray, LinqToKQLQueryTranslatorConfig? config = null)
     {

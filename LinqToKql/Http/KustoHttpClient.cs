@@ -7,7 +7,7 @@ namespace CSharp.OpenSource.LinqToKql.Http;
 
 public class KustoHttpClient : IKustoHttpClient
 {
-    protected readonly HttpClient _httpClient = new();
+    public readonly HttpClient HttpClient = new();
     protected string ClusterUrl { get; set; }
     protected string AuthBearerValue { get; set; }
     protected string DefaultDbName { get; set; }
@@ -38,7 +38,7 @@ public class KustoHttpClient : IKustoHttpClient
         {
             req.Headers.Authorization = new("Bearer", AuthBearerValue);
         }
-        var response = await _httpClient.SendAsync(req);
+        var response = await HttpClient.SendAsync(req);
         if (!response.IsSuccessStatusCode)
         {
             var error = await response.Content.ReadAsStringAsync();
