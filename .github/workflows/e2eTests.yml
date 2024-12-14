@@ -9,6 +9,9 @@ jobs:
         image: ghcr.io/csharp-opensource/csharp.opensource.linqtokql-demo-cluster:master
     name: End-to-End Tests
     steps:
+    - name: Verify Server is running
+      run: curl -sS http://localhost:8080/health
+
     - name: Checkout code
       uses: actions/checkout@v4
 
