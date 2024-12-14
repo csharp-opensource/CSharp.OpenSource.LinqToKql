@@ -19,12 +19,11 @@ public class KustoHttpClient : IKustoHttpClient
         DefaultDbName = defaultDbName;
     }
 
-    public virtual Task<T> ExecuteAsync<T>(string kql, string? database = null) => QueryAsync<T>(database ?? DefaultDbName, kql);
+    public virtual Task<T> ExecuteAsync<T>(string kql, string? database = null) => QueryAsync<T>(kql, database: database);
 
-    public virtual async Task<IKustoQueryResult?> QueryAsync(string csl, string apiVersion = "v2")
+    public virtual async Task<IKustoQueryResult?> QueryAsync(string csl, string apiVersion = "v2", string? database = null)
     {
         if (string.IsNullOrEmpty(ClusterUrl)) { throw new InvalidOperationException($"{nameof(ClusterUrl)} must be set before querying."); }
-        if (string.IsNullOrEmpty(AuthBearerValue)) { throw new InvalidOperationException($"{nameof(AuthBearerValue)} must be set before querying."); }
         var requestUri = $"{ClusterUrl}/{apiVersion}/rest/query";
         if (csl.Trim().StartsWith("."))
         {
@@ -33,20 +32,27 @@ public class KustoHttpClient : IKustoHttpClient
         }
         var req = new HttpRequestMessage(HttpMethod.Post, requestUri)
         {
-            Content = new StringContent(JsonSerializer.Serialize(new { db = DefaultDbName, csl }), Encoding.UTF8, "application/json"),
+            Content = new StringContent(JsonSerializer.Serialize(new { db = database ?? DefaultDbName, csl }), Encoding.UTF8, "application/json"),
         };
-        req.Headers.Authorization = new("Bearer", AuthBearerValue);
+        if (!string.IsNullOrEmpty(AuthBearerValue))
+        {
+            req.Headers.Authorization = new("Bearer", AuthBearerValue);
+        }
         var response = await _httpClient.SendAsync(req);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException(error);
+        }
         IKustoQueryResult? res = apiVersion == "v1"
             ? await response.Content.ReadFromJsonAsync<KustoQueryResultV1>()
             : await response.Content.ReadFromJsonAsync<KustoQueryResultV2>();
         return res;
     }
 
-    public virtual async Task<T> QueryAsync<T>(string csl, string apiVersion = "v2")
+    public virtual async Task<T> QueryAsync<T>(string csl, string apiVersion = "v2", string? database = null)
     {
-        var res = await QueryAsync(csl, apiVersion);
+        var res = await QueryAsync(csl, apiVersion, database);
         if (res == null)
         {
             throw new InvalidOperationException("Failed to deserialize Kusto query result.");

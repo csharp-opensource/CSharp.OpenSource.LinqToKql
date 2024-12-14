@@ -16,19 +16,23 @@ public class GroupByLinqToKQLTranslator : LinqToKQLTranslatorBase
         }
 
         var keySelector = methodCall.Arguments[1];
-        var key = SelectMembers(keySelector);
-        if (key == null)
+        var keys = SelectMembers(keySelector);
+        if (keys.Contains("."))
+        {
+            keys = keys.Split(",").Select(k => k.Contains(".") ? $"tostring({k})" : k).Aggregate((a, b) => $"{a}, {b}");
+        }
+        if (keys == null)
         {
             throw new InvalidOperationException($"{GetType().Name} - Key selector expression is invalid or not supported.");
         }
 
         var aggregation = methodCall.Arguments.Count == 2
-            ? AggrigationWithTwoArgs(methodCall, parent, key)
-            : GetAggregation((methodCall.Arguments[2] as LambdaExpression)!, key);
+            ? AggrigationWithTwoArgs(methodCall, parent, keys)
+            : GetAggregation((methodCall.Arguments[2] as LambdaExpression)!, keys);
 
         return string.IsNullOrEmpty(aggregation)
-            ? $"summarize by {key}"
-            : $"summarize {aggregation} by {key}";
+            ? $"summarize by {keys}"
+            : $"summarize {aggregation} by {keys}";
     }
 
     private string AggrigationWithTwoArgs(MethodCallExpression methodCall, Expression? parent, string key)

@@ -36,7 +36,7 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public void Translate_ShouldHandleWhereWithNot()
         => AssertQuery(
             _q.Where(x => !(x.Id > 1 && x.Id == 8)),
-            [_tableName, "where !(Id > 1 and Id == 8)"]
+            [_tableName, "where not(Id > 1 and Id == 8)"]
         );
 
     [Fact]
@@ -106,7 +106,7 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public void Translate_WhereListNotIn()
         => AssertQuery(
             _q.Where(x => !x.Numbers.Contains(1)).Select(x => new { x.Date, x.Description }),
-            [_tableName, $"where !(Numbers in (1))", "project Date, Description"]
+            [_tableName, $"where not(Numbers in (1))", "project Date, Description"]
         );
 
     [Fact]
@@ -120,7 +120,7 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public void Translate_WhereStringNotIn()
         => AssertQuery(
             _q.Where(x => !x.Name.Contains("c#")).Select(x => new { x.Date, x.Description }),
-            [_tableName, $"where !(Name has_cs 'c#')", "project Date, Description"]
+            [_tableName, $"where not(Name has_cs 'c#')", "project Date, Description"]
         );
 
     [Fact]
@@ -134,7 +134,7 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public void Translate_WhereStringNotStartsWith()
         => AssertQuery(
             _q.Where(x => !x.Name.StartsWith("c#")).Select(x => new { x.Date, x.Description }),
-            [_tableName, $"where !(Name startswith_cs 'c#')", "project Date, Description"]
+            [_tableName, $"where not(Name startswith_cs 'c#')", "project Date, Description"]
         );
 
     [Fact]
@@ -148,7 +148,7 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public void Translate_WhereStringNotEndsWith()
         => AssertQuery(
             _q.Where(x => !x.Name.EndsWith("c#")).Select(x => new { x.Date, x.Description }),
-            [_tableName, $"where !(Name endswith_cs 'c#')", "project Date, Description"]
+            [_tableName, $"where not(Name endswith_cs 'c#')", "project Date, Description"]
         );
 
     [Fact]

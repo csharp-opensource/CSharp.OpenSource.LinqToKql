@@ -71,7 +71,7 @@ public class ObjectExtensionTests
     public void GetKQLValue_Null_ReturnsNullString()
     {
         object? input = null;
-        var expected = "null";
+        var expected = "dynamic(null)";
         var result = input.GetKQLValue();
         Assert.Equal(expected, result);
     }

@@ -17,6 +17,11 @@ public class OrderByLinqToKQLTranslator : LinqToKQLTranslatorBase
     {
         var keySelector = methodCall.Arguments[1];
         var key = SelectMembers(keySelector);
+        // in case of nested properties, we need to use toscalar
+        if (key.Contains("."))
+        {
+            key = $"tostring({key})";
+        }
         var direction = descending ? "desc" : "asc";
         return $"sort by {key} {direction}";
     }

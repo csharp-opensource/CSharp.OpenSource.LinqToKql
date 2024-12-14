@@ -8,7 +8,7 @@ public class NestedTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public void Translate_ShouldHandleSimpleGroupBy()
         => AssertQuery(
             _q.GroupBy(x => x.Nested.Id2),
-            [_tableName, "summarize by Nested.Id2"]
+            [_tableName, "summarize by tostring(Nested.Id2)"]
         );
 
     [Fact]
@@ -22,7 +22,7 @@ public class NestedTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public void Translate_ShouldHandleOrderByDesc()
         => AssertQuery(
             _q.OrderByDescending(x => x.Nested.Name2),
-            [_tableName, "sort by Nested.Name2 desc"]
+            [_tableName, "sort by tostring(Nested.Name2) desc"]
         );
 
     [Fact]
@@ -37,7 +37,7 @@ public class NestedTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public void Translate_DisableNestedFalseSelects()
         => AssertQuery(
             _q.Select(x => new { Name3 = x.Name, Nested = new { Name4 = x.Nested.Name2, } }),
-            [_tableName, "extend Name3=Name, Nested=dynamic({\"Name4\":Nested.Name2})"],
+            [_tableName, "extend Name3=Name, Nested=bag_pack(\"Name4\",Nested.Name2)"],
             config: new() { DisableNestedProjection = false }
         );
 
@@ -45,7 +45,7 @@ public class NestedTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public void Translate_DisableNestedFalseWithClassSelects()
         => AssertQuery(
             _q.Select(x => new { Name3 = x.Name, Nested = new SampleObject3 { Name3 = x.Nested.Name2, } }),
-            [_tableName, "extend Name3=Name, Nested=dynamic({\"Name3\":Nested.Name2})"],
+            [_tableName, "extend Name3=Name, Nested=bag_pack(\"Name3\",Nested.Name2)"],
             config: new() { DisableNestedProjection = false }
         );
 
@@ -53,7 +53,7 @@ public class NestedTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public void Translate_ShouldHandleSelectCondition()
         => AssertQuery(
             _q.Select(x => new { Name3 = x.Name, Nested = x.Nested != null ? new SampleObject3 { Name3 = x.Nested.Name2, } : default }),
-            [_tableName, "extend Name3=Name, Nested=iff((Nested != null),Name3=Nested.Name2,null)"],
+            [_tableName, "extend Name3=Name, Nested=iff((isnotnull(Nested)),Name3=Nested.Name2,dynamic(null))"],
             config: new() { DisableNestedProjection = false }
         );
 

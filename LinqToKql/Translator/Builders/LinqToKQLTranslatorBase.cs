@@ -2,7 +2,6 @@
 using CSharp.OpenSource.LinqToKql.Translator.Models;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Reflection.Metadata;
 
 namespace CSharp.OpenSource.LinqToKql.Translator.Builders;
 
@@ -67,12 +66,12 @@ public abstract class LinqToKQLTranslatorBase
                 ExpressionType.New => SelectNewMembersModels(arg as NewExpression),
                 _ => throw new NotImplementedException(arg.NodeType.ToString()),
             };
-            var dynamicBlock = $"{item.memberName}=dynamic({{";
+            var dynamicBlock = $"{item.memberName}=bag_pack(";
             foreach (var m in members)
             {
-                dynamicBlock += $"\"{m.Name}\":{m.Value}";
+                dynamicBlock += $"\"{m.Name}\",{m.Value}";
             }
-            dynamicBlock += "})";
+            dynamicBlock += ")";
             res.Add(dynamicBlock);
         }
         return string.Join(", ", res);
@@ -149,7 +148,7 @@ public abstract class LinqToKQLTranslatorBase
             => expression switch
             {
                 MethodCallExpression methodCall => BuildFilterCustomMethodCall(methodCall),
-                UnaryExpression unaryExpression when unaryExpression.NodeType == ExpressionType.Not => $"!({BuildFilter(unaryExpression.Operand)})",
+                UnaryExpression unaryExpression when unaryExpression.NodeType == ExpressionType.Not => $"not({BuildFilter(unaryExpression.Operand)})",
                 BinaryExpression binary => BuildBinaryOperation(binary),
                 MemberExpression member => BuildMemberExpression(member),
                 NewArrayExpression newArrayExpression => $"({string.Join(", ", newArrayExpression.Expressions.Select(BuildFilter))})",
@@ -224,8 +223,13 @@ public abstract class LinqToKQLTranslatorBase
     protected string BuildBinaryOperation(BinaryExpression binary)
     {
         var left = BuildFilter(binary.Left);
-        var right = BuildFilter(binary.Right);
         var op = GetOperator(binary.NodeType);
+        if (binary.Right is ConstantExpression c && c.Value is null)
+        {
+            return op == "==" ? $"isnull({left})" : $"isnotnull({left})";
+        }
+        
+        var right = BuildFilter(binary.Right);
         return $"{left} {op} {right}";
     }
 

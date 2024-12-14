@@ -14,6 +14,6 @@ public static class ObjectExtension
             DateOnly date => $"datetime({date:yyyy-MM-dd})",
             string str => $"'{str.Replace("'", "\\'")}'",
             IEnumerable enumerable => $"({string.Join(", ", enumerable.Cast<object>().Select(GetKQLValue))})",
-            _ => value?.ToString() ?? "null",
+            _ => value?.ToString() ?? "dynamic(null)",
         };
 }

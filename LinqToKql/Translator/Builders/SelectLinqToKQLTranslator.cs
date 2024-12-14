@@ -6,7 +6,7 @@ public class SelectLinqToKQLTranslator : LinqToKQLTranslatorBase
 {
     private readonly string[] _extendOps = new[]
     {
-        "dynamic(",
+        "bag_pack(",
         "iff("
     };
     public SelectLinqToKQLTranslator(LinqToKQLQueryTranslatorConfig config) : base(config, new() { nameof(Enumerable.Select) })
