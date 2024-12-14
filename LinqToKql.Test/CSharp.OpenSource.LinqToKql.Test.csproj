@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CSharp.OpenSource.LinqToKql\CSharp.OpenSource.LinqToKql.csproj" />
+    <ProjectReference Include="..\LinqToKql\CSharp.OpenSource.LinqToKql.csproj" />
   </ItemGroup>
 
   <ItemGroup>

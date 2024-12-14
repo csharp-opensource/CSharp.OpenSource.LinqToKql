@@ -120,16 +120,24 @@ public abstract class LinqToKQLTranslatorBase
         if (arg is MethodCallExpression methodCall)
         {
             var methodName = methodCall.Method.Name;
-            if (methodName == "Count")
+            return methodName switch
             {
-                return "count()";
-            }
-            throw new InvalidOperationException($"{GetType().Name} - fail to translate");
+                "Count" => "count()",
+                "Sum" => $"sum({SelectMembers(methodCall.Arguments[1])})",
+                "Average" => $"avg({SelectMembers(methodCall.Arguments[1])})",
+                "Min" => $"min({SelectMembers(methodCall.Arguments[1])})",
+                "Max" => $"max({SelectMembers(methodCall.Arguments[1])})",
+                _ => throw new InvalidOperationException($"{GetType().Name} - Method {methodName} is not supported."),
+            };
         }
         else if (arg is MemberExpression mb2)
         {
             var propName = mb2.Member.Name;
             return propName;
+        }
+        else if (arg is ConstantExpression constant)
+        {
+            return constant.Value.GetKQLValue();
         }
         else
         {
