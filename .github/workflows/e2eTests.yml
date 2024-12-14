@@ -12,11 +12,8 @@ jobs:
           - 8080:8080
     name: End-to-End Tests
     steps:
-    - name: Verify Server is running
-      run: curl -sS http://localhost:8080/health
-
     - uses: actions/setup-dotnet@v4
-    
+
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -29,5 +26,8 @@ jobs:
     - name: Build
       run: dotnet build -clp:ErrorsOnly --no-restore ./LinqToKql.Test
 
+    - name: Verify Server is running
+      run: curl -sS http://localhost:8080/health
+      
     - name: Run unit tests
       run: dotnet test --no-restore --no-build ./LinqToKql.Test
