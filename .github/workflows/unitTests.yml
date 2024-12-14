@@ -11,10 +11,10 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Restore
-      run: dotnet restore ./CSharp.OpenSource.LinqToKql.Test
+      run: dotnet restore ./LinqToKql.Test
 
     - name: Build
-      run: dotnet build -clp:ErrorsOnly --no-restore ./CSharp.OpenSource.LinqToKql.Test
+      run: dotnet build -clp:ErrorsOnly --no-restore ./LinqToKql.Test
 
     - name: Run unit tests
-      run: dotnet test --no-restore --no-build ./CSharp.OpenSource.LinqToKql.Test
+      run: dotnet test --no-restore --no-build ./LinqToKql.Test
