@@ -3,6 +3,11 @@ name: DemoClusterImagePublish
 # Configures this workflow to run every time a change is pushed to the branch called `release`.
 on:
     workflow_dispatch:
+    push:
+        branches: 
+            - master
+        paths: 
+            - 'DemoCluster/**'
 
 # Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
 env:
@@ -19,7 +24,6 @@ jobs:
             packages: write
             attestations: write
             id-token: write
-            #
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
