@@ -17,7 +17,7 @@ public abstract class LinqToKQLQueryTranslatorBaseTest
         _client.HttpClient.Timeout = TimeSpan.FromSeconds(3);
     }
 
-    protected void AssertQuery<T>(IQueryable<T> queryable, string[] expectedArray, LinqToKQLQueryTranslatorConfig? config = null)
+    protected async Task AssertQueryAsync<T>(IQueryable<T> queryable, string[] expectedArray, LinqToKQLQueryTranslatorConfig? config = null)
     {
         config ??= new();
         var translator = GetTranslator(config);
@@ -38,7 +38,7 @@ public abstract class LinqToKQLQueryTranslatorBaseTest
         Assert.Equal(expected, actual);
         if (Environment.GetEnvironmentVariable("E2E_TESTING") == "1")
         {
-            _client.ExecuteAsync<object>(actual).Wait();
+            await _client.ExecuteAsync<object>(actual);
         }
     }
 }

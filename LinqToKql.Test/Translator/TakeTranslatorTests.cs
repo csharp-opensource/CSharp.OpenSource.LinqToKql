@@ -3,8 +3,8 @@
 public class TakeTranslatorTests : LinqToKQLQueryTranslatorBaseTest
 {
     [Fact]
-    public void Translate_ShouldHandleTake()
-        => AssertQuery(
+    public Task Translate_ShouldHandleTake()
+        => AssertQueryAsync(
             _q.Take(50),
             [_tableName, "take 50"]
         );
