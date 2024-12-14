@@ -7,6 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     container:
         image: ghcr.io/csharp-opensource/csharp.opensource.linqtokql-demo-cluster:master
+        ports:
+          - 8080:8080
     name: End-to-End Tests
     steps:
     - name: Verify Server is running
