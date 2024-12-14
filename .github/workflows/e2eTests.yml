@@ -17,8 +17,9 @@ jobs:
       uses: docker/setup-buildx-action@v2
 
     - name: Start local Kusto cluster
+      working-directory: ./DemoCluster
       run: |
-        docker run -e ACCEPT_EULA=Y -m 4G -d -p 8080:8080 -t mcr.microsoft.com/azuredataexplorer/kustainer-linux:latest
+         docker build -t kusto . && docker rm -f kusto && docker run -it --name kusto -p 8080:8080 kusto
 
     - name: Set E2E_TESTING environment variables 
       run: echo "E2E_TESTING=1" >> $GITHUB_ENV
