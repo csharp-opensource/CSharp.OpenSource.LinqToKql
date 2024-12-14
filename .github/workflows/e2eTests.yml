@@ -5,6 +5,8 @@ on: [push, pull_request]
 jobs:
   e2eTests:
     runs-on: ubuntu-latest
+    container:
+        image: ghcr.io/csharp-opensource/csharp.opensource.linqtokql-demo-cluster:master
     name: End-to-End Tests
     steps:
     - name: Checkout code
@@ -12,14 +14,6 @@ jobs:
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
-
-    - name: Set up Docker
-      uses: docker/setup-buildx-action@v2
-
-    - name: Start local Kusto cluster
-      working-directory: ./DemoCluster
-      run: |
-         docker build -t kusto . && docker run -it --name kusto -p 8080:8080 kusto
 
     - name: Set E2E_TESTING environment variables 
       run: echo "E2E_TESTING=1" >> $GITHUB_ENV
