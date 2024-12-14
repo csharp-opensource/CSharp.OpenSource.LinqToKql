@@ -189,4 +189,47 @@ public class ORMGeneratorTests
         Assert.True(isMatch2);
         Assert.False(isMatch3);
     }
+
+    [Fact]
+    public async Task VerifyKqlValidityOnServer()
+    {
+        var e2eTesting = Environment.GetEnvironmentVariable("E2E_TESTING");
+        if (e2eTesting == "1")
+        {
+            SetupProviderExecutor();
+            var providerExecutor = _mockExecutor.Object;
+            var ormGenerator = new ORMGenerator(new()
+            {
+                ProviderExecutor = providerExecutor,
+                ModelsFolderPath = "Models",
+                DbContextFolderPath = "../../../../Samples/ORMGeneratorTest/AutoGen",
+                DbContextName = "AutoGenORMKustoDbContext",
+                Namespace = "AutoGen",
+                ModelsNamespace = "AutoGen",
+                DbContextNamespace = "AutoGen",
+                CreateDbContext = true,
+                CleanFolderBeforeCreate = true,
+                EnableNullable = true,
+                FileScopedNamespaces = true,
+                DatabaseConfigs = new List<ORMGeneratorDatabaseConfig>
+                {
+                    new ORMGeneratorDatabaseConfig
+                    {
+                        DatabaseName = DbName1,
+                        Filters = new ORMGeneratorFilterConfig()
+                    },
+                    new ORMGeneratorDatabaseConfig
+                    {
+                        DatabaseName = DbName2,
+                        DatabaseDisplayName = "db2",
+                        Filters = new ORMGeneratorFilterConfig()
+                    }
+                }
+            });
+            await ormGenerator.GenerateAsync();
+
+            Assert.True(File.Exists(ormGenerator.Config.DbContextFilePath));
+            Assert.True(Directory.GetFiles(ormGenerator.Config.ModelsFolderPath, "*.cs", SearchOption.AllDirectories).Any());
+        }
+    }
 }

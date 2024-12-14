@@ -1,0 +1,33 @@
+name: End-to-End Tests
+
+on: [push, pull_request]
+
+jobs:
+  e2eTests:
+    runs-on: ubuntu-latest
+    name: End-to-End Tests
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v2
+
+    - name: Start local Kusto cluster
+      run: |
+        docker run -e ACCEPT_EULA=Y -m 4G -d -p 8080:8080 -t mcr.microsoft.com/azuredataexplorer/kustainer-linux:latest
+
+    - name: Set E2E_TESTING environment variables 
+      run: echo "E2E_TESTING=1" >> $GITHUB_ENV
+
+    - name: Restore
+      run: dotnet restore ./CSharp.OpenSource.LinqToKql.Test
+
+    - name: Build
+      run: dotnet build -clp:ErrorsOnly --no-restore ./CSharp.OpenSource.LinqToKql.Test
+
+    - name: Run unit tests
+      run: dotnet test --no-restore --no-build ./CSharp.OpenSource.LinqToKql.Test
