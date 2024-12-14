@@ -23,5 +23,11 @@ jobs:
     - name: Set E2E_TESTING environment variables 
       run: echo "E2E_TESTING=1" >> $GITHUB_ENV
 
-    - name: Run end-to-end tests
-      run: dotnet test ./CSharp.OpenSource.LinqToKql.Test
+    - name: Restore
+      run: dotnet restore ./CSharp.OpenSource.LinqToKql.Test
+
+    - name: Build
+      run: dotnet build -clp:ErrorsOnly --no-restore ./CSharp.OpenSource.LinqToKql.Test
+
+    - name: Run unit tests
+      run: dotnet test --no-restore --no-build ./CSharp.OpenSource.LinqToKql.Test
