@@ -10,17 +10,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set E2E_TESTING environment variable
-      run: echo "E2E_TESTING=0" >> $GITHUB_ENV
-
     - name: Restore
-      run: |
-        dotnet restore ./CSharp.OpenSource.LinqToKql.Test
+      run: dotnet restore ./CSharp.OpenSource.LinqToKql.Test
 
     - name: Build
-      run: |
-        dotnet build -clp:ErrorsOnly --no-restore ./CSharp.OpenSource.LinqToKql.Test
+      run: dotnet build -clp:ErrorsOnly --no-restore ./CSharp.OpenSource.LinqToKql.Test
 
     - name: Run unit tests
-      run: |
-        dotnet test --no-restore --no-build ./CSharp.OpenSource.LinqToKql.Test
+      run: dotnet test --no-restore --no-build ./CSharp.OpenSource.LinqToKql.Test
