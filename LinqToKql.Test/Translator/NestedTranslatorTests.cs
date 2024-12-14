@@ -50,7 +50,7 @@ public class NestedTranslatorTests : LinqToKQLQueryTranslatorBaseTest
         );
 
     [Fact]
-    public Task Translate_ShouldHandleSelectCondition()
+    public Task Translate_ShouldHandleSelectConditionAsync()
         => AssertQueryAsync(
             _q.Select(x => new { Name3 = x.Name, Nested = x.Nested != null ? new SampleObject3 { Name3 = x.Nested.Name2, } : default }),
             [_tableName, "extend Name3=Name, Nested=iff((isnotnull(Nested)),Name3=Nested.Name2,dynamic(null))"],
@@ -58,7 +58,7 @@ public class NestedTranslatorTests : LinqToKQLQueryTranslatorBaseTest
         );
 
     [Fact]
-    public Task Translate_ShouldHandleSelectCondition_DisableNestedTrue()
+    public Task Translate_ShouldHandleSelectCondition_DisableNestedTrueAsync()
         => AssertQueryAsync(
             _q.Select(x => new { Name3 = x.Name, Nested = x.Nested != null ? new SampleObject3 { Name3 = x.Nested.Name2, } : default }),
             [_tableName, "project Name3=Name, Nested"],
