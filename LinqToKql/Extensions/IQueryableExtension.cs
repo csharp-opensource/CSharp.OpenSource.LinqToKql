@@ -1,4 +1,5 @@
 ﻿using CSharp.OpenSource.LinqToKql.Provider;
+using System.Linq.Expressions;
 
 namespace CSharp.OpenSource.LinqToKql.Extensions;
 
@@ -25,11 +26,11 @@ public static class IQueryableExtension
 
     public static ILinqToKqlProvider<T> AsKQL<T>(this IQueryable<T> q)
     {
-        if (q is not ILinqToKqlProvider<T> kqlQ)
+        if (q is not ILinqToKqlProvider kqlQ)
         {
             throw new InvalidOperationException($"{q.GetType().Name} is not implement {nameof(ILinqToKqlProvider<T>)}");
         }
-        return kqlQ;
+        return kqlQ.Clone<T>();
     }
 
     public static ILinqToKqlProvider<S> AsKQL<S>(this IQueryable q)
@@ -69,5 +70,23 @@ public static class IQueryableExtension
         var kql = q.AsKQL();
         kql.ShouldRetry = shouldRetry;
         return kql;
+    }
+
+    public static IQueryable<T> Or<T>(this IQueryable<T> q, List<Expression<Func<T, bool>>> predicates)
+    {
+        if (predicates == null || predicates.Count == 0) { return q; }
+        var parameter = Expression.Parameter(typeof(T), "x");
+        Expression combinedExpression = null;
+        foreach (var predicate in predicates)
+        {
+            // Rewrite the predicate body to use the shared parameter
+            var rewrittenBody = Expression.Invoke(predicate, parameter);
+            combinedExpression = combinedExpression == null
+                ? rewrittenBody
+                : Expression.OrElse(combinedExpression, rewrittenBody);
+        }
+        // Create the combined lambda
+        var combinedLambda = Expression.Lambda<Func<T, bool>>(combinedExpression!, parameter);
+        return q.Where(combinedLambda);
     }
 }

@@ -18,6 +18,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharp.OpenSource.LinqToKql
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharp.OpenSource.LinqToKql.Test", "LinqToKql.Test\CSharp.OpenSource.LinqToKql.Test.csproj", "{E1BAF419-9C68-72D7-7D88-D346D2934047}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DemoCluster", "DemoCluster", "{0AA257E2-B5BD-41DE-AB78-4A817BF6768E}"
+	ProjectSection(SolutionItems) = preProject
+		DemoCluster\dbMock.ps1 = DemoCluster\dbMock.ps1
+		DemoCluster\Dockerfile = DemoCluster\Dockerfile
+		DemoCluster\entrypoint.sh = DemoCluster\entrypoint.sh
+		DemoCluster\run.ps1 = DemoCluster\run.ps1
+		DemoCluster\run.sh = DemoCluster\run.sh
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

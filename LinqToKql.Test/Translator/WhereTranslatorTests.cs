@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CSharp.OpenSource.LinqToKql.Extensions;
+using Microsoft.EntityFrameworkCore;
 
 namespace CSharp.OpenSource.LinqToKql.Test.Translator;
 
@@ -166,9 +167,16 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
         );
 
     [Fact]
-    public Task Translate_WhereStringLikeHasAsync() 
+    public Task Translate_WhereStringLikeHasAsync()
         => AssertQueryAsync(
             _q.Where(x => EF.Functions.Like(x.Name, "%na%")).Select(x => new { x.Date, x.Description }),
             [_tableName, $"where Name has_cs 'na'", "project Date, Description"]
+        );
+
+    [Fact]
+    public Task Translate_WhereOrAsync()
+        => AssertQueryAsync(
+            _q.Or(new() { x => x.IsActive == true, x => x.IsActive == false}),
+            [_tableName, $"where IsActive == true or IsActive == false"]
         );
 }

@@ -118,6 +118,47 @@ public class ORMGeneratorTests
     }
 
     [Fact]
+    public async Task GenerateAsync_ShouldCreateDbContextAndModelsE2E()
+    {
+        // Arrange & Act
+        if (!E2EHelper.IsE2E) { return; }
+        var providerExecutor = E2EHelper.Client;
+        var ormGenerator = new ORMGenerator(new()
+        {
+            ProviderExecutor = providerExecutor,
+            ModelsFolderPath = "Models",
+            DbContextFolderPath = "../../../../Samples/ORMGeneratorTest/AutoGenE2E",
+            DbContextName = "AutoGenORMKustoDbContextE2E",
+            Namespace = "AutoGenE2E",
+            ModelsNamespace = "AutoGenE2E",
+            DbContextNamespace = "AutoGenE2E",
+            CreateDbContext = true,
+            CleanFolderBeforeCreate = true,
+            EnableNullable = true,
+            FileScopedNamespaces = true,
+            DatabaseConfigs = new List<ORMGeneratorDatabaseConfig>
+            {
+                new ORMGeneratorDatabaseConfig
+                {
+                    DatabaseName = DbName1,
+                    Filters = new ORMGeneratorFilterConfig()
+                },
+                new ORMGeneratorDatabaseConfig
+                {
+                    DatabaseName = DbName2,
+                    DatabaseDisplayName = "db2",
+                    Filters = new ORMGeneratorFilterConfig()
+                }
+            }
+        });
+        await ormGenerator.GenerateAsync();
+
+        // Assert
+        Assert.True(File.Exists(ormGenerator.Config.DbContextFilePath));
+        Assert.True(Directory.GetFiles(ormGenerator.Config.ModelsFolderPath, "*.cs", SearchOption.AllDirectories).Any());
+    }
+
+    [Fact]
     public void CsharpType_ShouldReturnCorrectCsharpType()
     {
         // Arrange & Act
