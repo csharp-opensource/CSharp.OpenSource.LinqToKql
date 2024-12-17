@@ -205,7 +205,7 @@ public abstract class LinqToKQLTranslatorBase
 
         string HandleKqlLike(MethodCallExpression methodCall)
         {
-            var likeValue = GetValue(methodCall.Arguments[1], null).ToString()!;
+            var likeValue = GetValue(methodCall.Arguments[1], null, false).ToString()!;
             var wildCardSymbol = SelectMembers(methodCall.Arguments[2])[0];
             var filter = likeValue.Trim(wildCardSymbol).GetKQLValue();
             var leftSideKql = BuildFilter(methodCall.Arguments[0]);
