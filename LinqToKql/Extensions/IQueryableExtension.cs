@@ -72,16 +72,21 @@ public static class IQueryableExtension
         return kql;
     }
 
-    public static ILinqToKqlProvider<T> Or<T>(this IQueryable<T> q, List<Expression<Func<T, bool>>> predicates)
+    public static IQueryable<T> Or<T>(this IQueryable<T> q, List<Expression<Func<T, bool>>> predicates)
     {
-        var kql = q.AsKQL();
-        if (predicates == null || predicates.Count == 0) { return kql; }
-        Expression combinedExpression = predicates.First();
-        foreach (var predicate in predicates.Skip(1))
+        if (predicates == null || predicates.Count == 0) { return q; }
+        var parameter = Expression.Parameter(typeof(T), "x");
+        Expression combinedExpression = null;
+        foreach (var predicate in predicates)
         {
-            combinedExpression = Expression.OrElse(combinedExpression, predicate.Body);
+            // Rewrite the predicate body to use the shared parameter
+            var rewrittenBody = Expression.Invoke(predicate, parameter);
+            combinedExpression = combinedExpression == null
+                ? rewrittenBody
+                : Expression.OrElse(combinedExpression, rewrittenBody);
         }
-        var orPredicate = Expression.Lambda<Func<T, bool>>(combinedExpression, Expression.Parameter(typeof(T), "x"));
-        return kql.Where(orPredicate).AsKQL();
+        // Create the combined lambda
+        var combinedLambda = Expression.Lambda<Func<T, bool>>(combinedExpression!, parameter);
+        return q.Where(combinedLambda);
     }
 }
