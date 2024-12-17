@@ -174,6 +174,17 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
             [_tableName, $"where Name {action} 'na'"]
         );
 
+    [Theory]
+    [InlineData("na", "==")]
+    [InlineData("*na*", "has_cs")]
+    [InlineData("*na", "startswith_cs")]
+    [InlineData("na*", "endswith_cs")]
+    public Task Translate_LikeByStringMethodAsync(string pattern, string action)
+        => AssertQueryAsync(
+            _q.Where(x => x.Name.KqlLike(pattern, '*')),
+            [_tableName, $"where Name {action} 'na'"]
+        );
+
     [Fact]
     public Task Translate_WhereStringLikeStartsWithAsync()
         => AssertQueryAsync(

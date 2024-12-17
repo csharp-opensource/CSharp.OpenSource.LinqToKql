@@ -90,7 +90,7 @@ public static class IQueryableExtension
         return q.Where(combinedLambda);
     }
 
-    public static IQueryable<T> Like<T>(this IQueryable<T> q, string propName, string pattern, char wildCardSymbol = '*')
+    public static IQueryable<T> Like<T>(this IQueryable<T> q, string propName, string pattern, char wildCardSymbol = '%')
     {
         if (string.IsNullOrWhiteSpace(propName)) { throw new ArgumentException("Property name cannot be null or empty.", nameof(propName)); }
         var parameter = Expression.Parameter(typeof(T), "x");
@@ -100,7 +100,7 @@ public static class IQueryableExtension
     }
 
     // Overloaded Like method accepting property expression
-    public static IQueryable<T> Like<T>(this IQueryable<T> q, Expression<Func<T, string>> propExpression, string pattern, char wildCardSymbol = '*')
+    public static IQueryable<T> Like<T>(this IQueryable<T> q, Expression<Func<T, string>> propExpression, string pattern, char wildCardSymbol = '%')
     {
         if (propExpression == null) { throw new ArgumentNullException(nameof(propExpression)); }
         if (string.IsNullOrWhiteSpace(pattern)) { throw new ArgumentException("Pattern cannot be null or empty.", nameof(pattern)); }

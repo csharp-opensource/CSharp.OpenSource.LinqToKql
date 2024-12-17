@@ -1,5 +1,6 @@
 ﻿using CSharp.OpenSource.LinqToKql.Extensions;
 using CSharp.OpenSource.LinqToKql.Translator.Models;
+using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -170,6 +171,7 @@ public abstract class LinqToKQLTranslatorBase
             nameof(string.StartsWith) => $"{BuildFilter(leftSide)} startswith_cs {BuildFilter(methodCall.Arguments[0])}",
             nameof(string.EndsWith) => $"{BuildFilter(leftSide)} endswith_cs {BuildFilter(methodCall.Arguments[0])}",
             nameof(string.Equals) => $"{BuildFilter(leftSide)} == {BuildFilter(methodCall.Arguments[0])}",
+            "KqlLike" => HandleKqlLike(methodCall),
             "Like" => HandleLike(methodCall, leftSide),
             _ => throw new NotSupportedException($"{nameof(BuildFilterCustomMethodCall)} - Method {methodCall.Method.Name} is not supported."),
         };
@@ -198,7 +200,28 @@ public abstract class LinqToKQLTranslatorBase
             {
                 return $"{leftSideKql} endswith_cs {filter}";
             }
-            throw new NotSupportedException($"{nameof(HandleLike)} - likeValue={likeValue} is not supported.");
+            return $"{leftSideKql} == {filter}";
+        }
+
+        string HandleKqlLike(MethodCallExpression methodCall)
+        {
+            var likeValue = GetValue(methodCall.Arguments[1], null).ToString()!;
+            var wildCardSymbol = SelectMembers(methodCall.Arguments[2])[0];
+            var filter = likeValue.Trim(wildCardSymbol).GetKQLValue();
+            var leftSideKql = BuildFilter(methodCall.Arguments[0]);
+            if (likeValue.StartsWith(wildCardSymbol) && likeValue.EndsWith(wildCardSymbol))
+            {
+                return $"{leftSideKql} has_cs {filter}";
+            }
+            if (likeValue.StartsWith(wildCardSymbol))
+            {
+                return $"{leftSideKql} startswith_cs {filter}";
+            }
+            if (likeValue.EndsWith(wildCardSymbol))
+            {
+                return $"{leftSideKql} endswith_cs {filter}";
+            }
+            return $"{leftSideKql} == {filter}";
         }
     }
 
@@ -253,7 +276,7 @@ public abstract class LinqToKQLTranslatorBase
         {
             if (parentExpression == null)
             {
-                throw new NotSupportedException();
+                return GetValue(member.Expression, member, false);
             }
             var innerValue = GetValue(member.Expression, member, false);
             return GetValueFromParent(innerValue, parentExpression).GetKQLValue();

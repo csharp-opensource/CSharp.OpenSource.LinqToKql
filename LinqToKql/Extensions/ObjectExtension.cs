@@ -16,4 +16,9 @@ public static class ObjectExtension
             IEnumerable enumerable => $"({string.Join(", ", enumerable.Cast<object>().Select(GetKQLValue))})",
             _ => value?.ToString() ?? "dynamic(null)",
         };
+
+    public static bool KqlLike(this string str, string pattern, char wildCardSymbol = '%')
+    {
+        throw new Exception("This method should not be called. It is used for translation purposes only.");
+    }
 }
