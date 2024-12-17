@@ -279,7 +279,9 @@ public class ORMGenerator
             .Concat(dbConfig.Filters.GlobalFilters)
             .Concat(dbConfig.Filters.TableFilters)
             .ToList();
-        return ApplyFilters(tables, t => t.TableName, filters).GroupBy(x => x.TableName)
+        return ApplyFilters(tables, t => t.TableName, filters)
+                .Where(x => !string.IsNullOrEmpty(x.TableName))
+                .GroupBy(x => x.TableName)
                 .Select(x => new ORMGeneratorTable { Name = x.Key, Columns = x.Where(x => !string.IsNullOrEmpty(x.ColumnName)).ToList() })
                 .ToList();
     }
@@ -293,7 +295,7 @@ public class ORMGenerator
             .Concat(dbConfig.Filters.GlobalFilters)
             .Concat(dbConfig.Filters.FunctionFilters)
             .ToList();
-        functions = ApplyFilters(functions, t => t.Name, filters);
+        functions = ApplyFilters(functions, t => t.Name, filters).Where(x => !string.IsNullOrEmpty(x.Name)).ToList();
         foreach (var function in functions)
         {
             function.ParametersItems = function.Parameters?.TrimStart('(').TrimEnd(')')

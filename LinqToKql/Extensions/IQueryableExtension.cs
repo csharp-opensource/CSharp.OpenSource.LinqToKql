@@ -26,11 +26,11 @@ public static class IQueryableExtension
 
     public static ILinqToKqlProvider<T> AsKQL<T>(this IQueryable<T> q)
     {
-        if (q is not ILinqToKqlProvider<T> kqlQ)
+        if (q is not ILinqToKqlProvider kqlQ)
         {
             throw new InvalidOperationException($"{q.GetType().Name} is not implement {nameof(ILinqToKqlProvider<T>)}");
         }
-        return kqlQ;
+        return kqlQ.Clone<T>();
     }
 
     public static ILinqToKqlProvider<S> AsKQL<S>(this IQueryable q)
