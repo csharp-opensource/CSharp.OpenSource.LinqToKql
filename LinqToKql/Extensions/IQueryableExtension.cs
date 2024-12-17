@@ -89,4 +89,49 @@ public static class IQueryableExtension
         var combinedLambda = Expression.Lambda<Func<T, bool>>(combinedExpression!, parameter);
         return q.Where(combinedLambda);
     }
+
+    public static IQueryable<T> Like<T>(this IQueryable<T> q, string propName, string pattern, char wildCardSymbol = '*')
+    {
+        if (string.IsNullOrWhiteSpace(propName)) { throw new ArgumentException("Property name cannot be null or empty.", nameof(propName)); }
+        var parameter = Expression.Parameter(typeof(T), "x");
+        var property = Expression.Property(parameter, propName);
+        var propExpression = Expression.Lambda<Func<T, string>>(property, parameter);
+        return q.Like(propExpression, pattern, wildCardSymbol);
+    }
+
+    // Overloaded Like method accepting property expression
+    public static IQueryable<T> Like<T>(this IQueryable<T> q, Expression<Func<T, string>> propExpression, string pattern, char wildCardSymbol = '*')
+    {
+        if (propExpression == null) { throw new ArgumentNullException(nameof(propExpression)); }
+        if (string.IsNullOrWhiteSpace(pattern)) { throw new ArgumentException("Pattern cannot be null or empty.", nameof(pattern)); }
+        var parameter = propExpression.Parameters[0];
+        var property = propExpression.Body;
+        var startsWithWildcard = pattern.StartsWith(wildCardSymbol.ToString());
+        var endsWithWildcard = pattern.EndsWith(wildCardSymbol.ToString());
+        var normalizedPattern = pattern.Trim(wildCardSymbol);
+        Expression methodCall;
+        if (startsWithWildcard && endsWithWildcard)
+        {
+            // Use Contains when pattern has wildcards at both ends
+            methodCall = Expression.Call(property, nameof(string.Contains), null, Expression.Constant(normalizedPattern));
+        }
+        else if (startsWithWildcard)
+        {
+            // Use EndsWith when pattern starts with a wildcard
+            methodCall = Expression.Call(property, nameof(string.StartsWith), null, Expression.Constant(normalizedPattern));
+        }
+        else if (endsWithWildcard)
+        {
+            // Use StartsWith when pattern ends with a wildcard
+            methodCall = Expression.Call(property, nameof(string.EndsWith), null, Expression.Constant(normalizedPattern));
+        }
+        else
+        {
+            // If no wildcard, use String.Equals with StringComparison.OrdinalIgnoreCase
+            var equalsMethod = typeof(string).GetMethod(nameof(string.Equals), new[] { typeof(string) })!;
+            methodCall = Expression.Call(property, equalsMethod, Expression.Constant(pattern));
+        }
+        var lambda = Expression.Lambda<Func<T, bool>>(methodCall, parameter);
+        return q.Where(lambda);
+    }
 }

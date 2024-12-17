@@ -152,6 +152,28 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
             [_tableName, $"where not(Name endswith_cs 'c#')", "project Date, Description"]
         );
 
+    [Theory]
+    [InlineData("na", "==")]
+    [InlineData("%na%", "has_cs")]
+    [InlineData("%na", "startswith_cs")]
+    [InlineData("na%", "endswith_cs")]
+    public Task Translate_LikeAsync(string pattern, string action)
+        => AssertQueryAsync(
+            _q.Like(y => y.Name, pattern, '%'),
+            [_tableName, $"where Name {action} 'na'"]
+        );
+
+    [Theory]
+    [InlineData("na", "==")]
+    [InlineData("%na%", "has_cs")]
+    [InlineData("%na", "startswith_cs")]
+    [InlineData("na%", "endswith_cs")]
+    public Task Translate_LikeByPropNameAsync(string pattern, string action)
+        => AssertQueryAsync(
+            _q.Like("Name", pattern, '%'),
+            [_tableName, $"where Name {action} 'na'"]
+        );
+
     [Fact]
     public Task Translate_WhereStringLikeStartsWithAsync()
         => AssertQueryAsync(
