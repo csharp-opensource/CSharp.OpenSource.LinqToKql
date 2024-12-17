@@ -1,4 +1,5 @@
 ﻿using CSharp.OpenSource.LinqToKql.Provider;
+using System.Linq.Expressions;
 
 namespace CSharp.OpenSource.LinqToKql.Extensions;
 
@@ -69,5 +70,18 @@ public static class IQueryableExtension
         var kql = q.AsKQL();
         kql.ShouldRetry = shouldRetry;
         return kql;
+    }
+
+    public static ILinqToKqlProvider<T> Or<T>(this IQueryable<T> q, List<Expression<Func<T, bool>>> predicates)
+    {
+        var kql = q.AsKQL();
+        if (predicates == null || predicates.Count == 0) { return kql; }
+        Expression combinedExpression = predicates.First();
+        foreach (var predicate in predicates.Skip(1))
+        {
+            combinedExpression = Expression.OrElse(combinedExpression, predicate.Body);
+        }
+        var orPredicate = Expression.Lambda<Func<T, bool>>(combinedExpression, Expression.Parameter(typeof(T), "x"));
+        return kql.Where(orPredicate).AsKQL();
     }
 }

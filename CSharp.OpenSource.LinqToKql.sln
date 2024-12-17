@@ -18,6 +18,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharp.OpenSource.LinqToKql
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharp.OpenSource.LinqToKql.Test", "LinqToKql.Test\CSharp.OpenSource.LinqToKql.Test.csproj", "{E1BAF419-9C68-72D7-7D88-D346D2934047}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DemoCluster", "DemoCluster", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		DemoCluster\dbMock.ps1 = DemoCluster\dbMock.ps1
+		DemoCluster\Dockerfile = DemoCluster\Dockerfile
+		DemoCluster\entrypoint.sh = DemoCluster\entrypoint.sh
+		DemoCluster\run.ps1 = DemoCluster\run.ps1
+		DemoCluster\run.sh = DemoCluster\run.sh
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,6 +51,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{4E46D615-5150-0B1F-2C79-56265475BA1F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {1A6FEC19-0859-470F-8DA9-ED39621955FF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {81340FDE-FA98-47D2-9179-877515741330}
