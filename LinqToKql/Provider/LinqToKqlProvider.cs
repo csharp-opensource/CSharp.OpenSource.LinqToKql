@@ -67,7 +67,7 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
     public virtual LinqToKqlProvider<S> Clone<S>(Expression? expression = null)
         => new LinqToKqlProvider<S>(
                 TableOrKQL,
-                expression,
+                expression ?? Expression,
                 ProviderExecutor,
                 Translator.Config,
                 DefaultDbName,
