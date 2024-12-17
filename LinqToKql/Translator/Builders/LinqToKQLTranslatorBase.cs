@@ -270,16 +270,17 @@ public abstract class LinqToKQLTranslatorBase
         if (expression is NewExpression newExpression)
         {
             var compiledValue = Expression.Lambda(newExpression).Compile().DynamicInvoke();
-            return compiledValue.GetKQLValue();
+            return getAsKQLValue ? compiledValue.GetKQLValue() : compiledValue;
         }
         if (expression is MemberExpression member)
         {
             if (parentExpression == null)
             {
-                return GetValue(member.Expression, member, false);
+                return GetValue(member.Expression, member, getAsKQLValue);
             }
             var innerValue = GetValue(member.Expression, member, false);
-            return GetValueFromParent(innerValue, parentExpression).GetKQLValue();
+            var pVal = GetValueFromParent(innerValue, parentExpression);
+            return getAsKQLValue ? pVal.GetKQLValue() : pVal;
         }
         throw new NotSupportedException($"expression type = {expression.GetType()}, Member type {parentExpression.Member.GetType()} is not supported.");
     }
