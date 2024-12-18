@@ -28,8 +28,8 @@ public abstract class KustoDbContext : IKustoDbContext
     public LinqToKqlProvider<T> CreateQuery<T>(string tableOrKQL, string? database = null)
         => new LinqToKqlProvider<T>(tableOrKQL, expression: null, providerExecutor: ProviderExecutor, defaultDbName: database ?? DefaultDbName, config: GetConfig());
 
-    public LinqToKqlProvider<S> Clone<S>(Expression? expression = null) 
-        => dummyProvider.Clone<S>(expression);
+    public LinqToKqlProvider<S> Clone<S>(Expression? expression = null, bool cloneExpressionOnNull = true) 
+        => dummyProvider.Clone<S>(expression, cloneExpressionOnNull);
 
     public string TranslateToKQL(Expression? expression = null)
         => dummyProvider.TranslateToKQL(expression);

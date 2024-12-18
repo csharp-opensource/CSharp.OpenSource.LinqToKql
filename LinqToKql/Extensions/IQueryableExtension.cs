@@ -62,7 +62,7 @@ public static class IQueryableExtension
             tableOrKQL = string.Join(kql.Translator.PipeWithIndentation, currentKQL, tableOrKQL);
         }
         kql.TableOrKQL = tableOrKQL;
-        return kql.Clone<S>(null);
+        return kql.Clone<S>(null, !appendKQL);
     }
 
     public static ILinqToKqlProvider<T> WithRetry<T>(this IQueryable<T> q, Func<ILinqToKqlProvider, Exception, Task<bool>> shouldRetry)
