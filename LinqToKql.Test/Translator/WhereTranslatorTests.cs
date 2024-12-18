@@ -186,14 +186,14 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
         );
 
     [Fact]
-    public Task Translate_WhereStringLikeStartsWithAsync()
+    public Task Translate_WhereStringLikeStartsWithWildCardAsync()
         => AssertQueryAsync(
             _q.Where(x => EF.Functions.Like(x.Name, "%na")).Select(x => new { x.Date, x.Description }),
             [_tableName, $"where Name endswith_cs 'na'", "project Date, Description"]
         );
 
     [Fact]
-    public Task Translate_WhereStringLikeEndsWithAsync()
+    public Task Translate_WhereStringLikeEndsWithWithWildCardAsync()
         => AssertQueryAsync(
             _q.Where(x => EF.Functions.Like(x.Name, "na%")).Select(x => new { x.Date, x.Description }),
             [_tableName, $"where Name startswith_cs 'na'", "project Date, Description"]
