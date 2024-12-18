@@ -10,4 +10,18 @@ public class SelectTranslatorTests : LinqToKQLQueryTranslatorBaseTest
             _q.Select(x => new SampleObject2 { Name2 = x.Name, Id2 = x.Id }),
             [_tableName, "project Name2=Name, Id2=Id"]
         );
+
+    [Fact]
+    public Task Translate_ShouldHandleDistinctByAsync()
+        => AssertQueryAsync(
+            _q.DistinctBy(x => new { x.Name, x.Id }),
+            [_tableName, "distinct Name, Id"]
+        );
+
+    [Fact]
+    public Task Translate_ShouldHandleDistinctAsync()
+        => AssertQueryAsync(
+            _q.Select(x => new { x.Name, x.Id }).Distinct(),
+            [_tableName, "project Name, Id", "distinct Name, Id"]
+        );
 }
