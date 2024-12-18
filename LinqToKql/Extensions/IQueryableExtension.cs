@@ -118,12 +118,12 @@ public static class IQueryableExtension
         else if (startsWithWildcard)
         {
             // Use EndsWith when pattern starts with a wildcard
-            methodCall = Expression.Call(property, nameof(string.StartsWith), null, Expression.Constant(normalizedPattern));
+            methodCall = Expression.Call(property, nameof(string.EndsWith), null, Expression.Constant(normalizedPattern));
         }
         else if (endsWithWildcard)
         {
             // Use StartsWith when pattern ends with a wildcard
-            methodCall = Expression.Call(property, nameof(string.EndsWith), null, Expression.Constant(normalizedPattern));
+            methodCall = Expression.Call(property, nameof(string.StartsWith), null, Expression.Constant(normalizedPattern));
         }
         else
         {
