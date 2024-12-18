@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace CSharp.OpenSource.LinqToKql.Translator.Builders;
 
