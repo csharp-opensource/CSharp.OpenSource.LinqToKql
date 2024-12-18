@@ -22,6 +22,6 @@ public class SelectTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public Task Translate_ShouldHandleDistinctAsync()
         => AssertQueryAsync(
             _q.Select(x => new { x.Name, x.Id }).Distinct(),
-            [_tableName, "distinct Name, Id"]
+            [_tableName, "project Name, Id", "distinct Name, Id"]
         );
 }
