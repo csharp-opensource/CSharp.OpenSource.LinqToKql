@@ -64,10 +64,10 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
     public virtual IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         => Clone<TElement>(expression);
 
-    public virtual LinqToKqlProvider<S> Clone<S>(Expression? expression = null)
+    public virtual LinqToKqlProvider<S> Clone<S>(Expression? expression = null, bool cloneExpressionOnNull = true)
         => new LinqToKqlProvider<S>(
                 TableOrKQL,
-                expression ?? Expression,
+                expression ?? (cloneExpressionOnNull ? Expression : null),
                 ProviderExecutor,
                 Translator.Config,
                 DefaultDbName,
