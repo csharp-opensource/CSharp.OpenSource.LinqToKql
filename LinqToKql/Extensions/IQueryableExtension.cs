@@ -1,4 +1,4 @@
-﻿using CSharp.OpenSource.LinqToKql.Provider;
+using CSharp.OpenSource.LinqToKql.Provider;
 using System.Linq.Expressions;
 
 namespace CSharp.OpenSource.LinqToKql.Extensions;
