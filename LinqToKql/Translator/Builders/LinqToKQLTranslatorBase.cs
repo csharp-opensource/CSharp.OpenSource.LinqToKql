@@ -194,11 +194,11 @@ public abstract class LinqToKQLTranslatorBase
             }
             if (likeValue.StartsWith("%"))
             {
-                return $"{leftSideKql} startswith_cs {filter}";
+                return $"{leftSideKql} endswith_cs {filter}";
             }
             if (likeValue.EndsWith("%"))
             {
-                return $"{leftSideKql} endswith_cs {filter}";
+                return $"{leftSideKql} startswith_cs {filter}";
             }
             return $"{leftSideKql} == {filter}";
         }
@@ -215,11 +215,11 @@ public abstract class LinqToKQLTranslatorBase
             }
             if (likeValue.StartsWith(wildCardSymbol))
             {
-                return $"{leftSideKql} startswith_cs {filter}";
+                return $"{leftSideKql} endswith_cs {filter}";
             }
             if (likeValue.EndsWith(wildCardSymbol))
             {
-                return $"{leftSideKql} endswith_cs {filter}";
+                return $"{leftSideKql} startswith_cs {filter}";
             }
             return $"{leftSideKql} == {filter}";
         }

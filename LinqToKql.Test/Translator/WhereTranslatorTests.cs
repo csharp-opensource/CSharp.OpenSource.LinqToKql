@@ -155,8 +155,8 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     [Theory]
     [InlineData("na", "==")]
     [InlineData("%na%", "has_cs")]
-    [InlineData("%na", "startswith_cs")]
-    [InlineData("na%", "endswith_cs")]
+    [InlineData("%na", "endswith_cs")]
+    [InlineData("na%", "startswith_cs")]
     public Task Translate_LikeAsync(string pattern, string action)
         => AssertQueryAsync(
             _q.Like(y => y.Name, pattern, '%'),
@@ -166,8 +166,8 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     [Theory]
     [InlineData("na", "==")]
     [InlineData("%na%", "has_cs")]
-    [InlineData("%na", "startswith_cs")]
-    [InlineData("na%", "endswith_cs")]
+    [InlineData("%na", "endswith_cs")]
+    [InlineData("na%", "startswith_cs")]
     public Task Translate_LikeByPropNameAsync(string pattern, string action)
         => AssertQueryAsync(
             _q.Like("Name", pattern, '%'),
@@ -177,8 +177,8 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     [Theory]
     [InlineData("na", "==")]
     [InlineData("*na*", "has_cs")]
-    [InlineData("*na", "startswith_cs")]
-    [InlineData("na*", "endswith_cs")]
+    [InlineData("*na", "endswith_cs")]
+    [InlineData("na*", "startswith_cs")]
     public Task Translate_LikeByStringMethodAsync(string pattern, string action)
         => AssertQueryAsync(
             _q.Where(x => x.Name.KqlLike(pattern, '*')),
@@ -189,14 +189,14 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public Task Translate_WhereStringLikeStartsWithAsync()
         => AssertQueryAsync(
             _q.Where(x => EF.Functions.Like(x.Name, "%na")).Select(x => new { x.Date, x.Description }),
-            [_tableName, $"where Name startswith_cs 'na'", "project Date, Description"]
+            [_tableName, $"where Name endswith_cs 'na'", "project Date, Description"]
         );
 
     [Fact]
     public Task Translate_WhereStringLikeEndsWithAsync()
         => AssertQueryAsync(
             _q.Where(x => EF.Functions.Like(x.Name, "na%")).Select(x => new { x.Date, x.Description }),
-            [_tableName, $"where Name endswith_cs 'na'", "project Date, Description"]
+            [_tableName, $"where Name startswith_cs 'na'", "project Date, Description"]
         );
 
     [Fact]
