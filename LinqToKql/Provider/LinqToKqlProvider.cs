@@ -65,14 +65,23 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
         => Clone<TElement>(expression);
 
     public virtual LinqToKqlProvider<S> Clone<S>(Expression? expression = null, bool cloneExpressionOnNull = true)
-        => new LinqToKqlProvider<S>(
-                TableOrKQL,
-                expression ?? (cloneExpressionOnNull ? Expression : null),
-                ProviderExecutor,
-                Translator.Config,
-                DefaultDbName,
-                ShouldRetry
-           );
+    {
+        var kql = TableOrKQL;
+        expression ??= cloneExpressionOnNull ? Expression : null;
+        if (typeof(T) != typeof(S))
+        {
+            expression = null;
+            kql = TranslateToKQL();
+        }
+        return new(
+            kql,
+            expression,
+            ProviderExecutor,
+            Translator.Config,
+            DefaultDbName,
+            ShouldRetry
+        );
+    }
 
     public virtual async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
