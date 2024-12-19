@@ -1,4 +1,8 @@
-﻿namespace CSharp.OpenSource.LinqToKql.Test.Model;
+﻿using Newtonsoft.Json;
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
+
+namespace CSharp.OpenSource.LinqToKql.Test.Model;
 
 public class SampleObject
 {
@@ -15,4 +19,10 @@ public class SampleObject
     public long Value { get; set; }
     public List<long> Numbers { get; set; }
     public SampleObject2 Nested { get; set; }
+    [JsonProperty("prop_newtonsoft")]
+    public long PropNewtonsoft { get; set; }
+    [JsonPropertyName("prop_text_json")]
+    public long PropTextJson { get; set; }
+    [DataMember(Name = "prop_data_member")]
+    public long PropDataMember { get; set; }
 }

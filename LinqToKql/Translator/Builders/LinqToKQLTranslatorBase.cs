@@ -1,8 +1,9 @@
 ﻿using CSharp.OpenSource.LinqToKql.Extensions;
 using CSharp.OpenSource.LinqToKql.Translator.Models;
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 
 namespace CSharp.OpenSource.LinqToKql.Translator.Builders;
 
@@ -28,10 +29,25 @@ public abstract class LinqToKQLTranslatorBase
             LambdaExpression lambda => SelectMembers(lambda.Body),
             MemberInitExpression memberInitExpression => SelectInitMembers(memberInitExpression, isAfterGroupBy),
             NewExpression newExpr => isAfterGroupBy ? "" : SelectNewExpression(newExpr),
-            MemberExpression member => member.Expression == null || member.Expression is ParameterExpression ? member.Member.Name : $"{SelectMembers(member.Expression)}.{member.Member.Name}",
+            MemberExpression member => member.Expression == null || member.Expression is ParameterExpression ? GetMemberName(member.Member) : $"{SelectMembers(member.Expression)}.{GetMemberName(member.Member)}",
             ConstantExpression constant => constant.Value.GetKQLValue(),
             _ => throw new NotSupportedException($"{GetType().Name} - Expression type {expression.GetType()} is not supported, expression={expression}."),
         };
+    }
+
+    private string GetMemberName(MemberInfo memberInfo)
+    {
+        var attributes = memberInfo.GetCustomAttributes(true);
+        var dmAttr = attributes.OfType<DataMemberAttribute>().FirstOrDefault();
+        if (dmAttr != null) { return dmAttr.Name; }
+        var jpnAttr = attributes.OfType<JsonPropertyNameAttribute>().FirstOrDefault();
+        if (jpnAttr != null) { return jpnAttr.Name; }
+        var jpAttr = attributes.FirstOrDefault(x => x.GetType().FullName == "Newtonsoft.Json.JsonPropertyAttribute");
+        if (jpAttr != null)
+        {
+            return jpAttr.GetType().GetProperty("PropertyName")!.GetValue(jpAttr)!.ToString()!;
+        }
+        return memberInfo.Name;
     }
 
     private string SelectNewExpression(NewExpression newExpr)
@@ -39,9 +55,9 @@ public abstract class LinqToKQLTranslatorBase
         var membersWithArgs = newExpr.Arguments.Select((arg, index) => new
         {
             arg,
-            argName = (arg as MemberExpression)?.Member.Name,
+            argName = (arg as MemberExpression)?.Member == null ? null : GetMemberName((arg as MemberExpression)!.Member),
             member = newExpr.Members?[index],
-            memberName = newExpr.Members?[index]?.Name,
+            memberName = newExpr.Members?[index] == null ? null : GetMemberName(newExpr.Members[index]),
         });
         var res = new List<string>();
         foreach (var item in membersWithArgs)
@@ -85,7 +101,7 @@ public abstract class LinqToKQLTranslatorBase
         {
             var member = newExpr.Members[index];
             var value = SelectMembers(arg);
-            res.Add(new() { Name = member.Name, Value = value, });
+            res.Add(new() { Name = GetMemberName(member), Value = value, });
         }
         return res;
     }
@@ -94,7 +110,9 @@ public abstract class LinqToKQLTranslatorBase
     {
         var members = SelectInitMembersModels(memberInitExpression, isAfterGroupBy);
         var isAllValuesEq = members.All(x => x.Name == x.Value);
-        return isAllValuesEq ? "" : string.Join(", ", members.Select(x => $"{x.Name}={x.Value}"));
+        return isAllValuesEq 
+            ? isAfterGroupBy ? "" : string.Join(", ", members.Select(x => x.Name))
+            : string.Join(", ", members.Select(x => $"{x.Name}={x.Value}"));
     }
 
     private List<SelectMemeberModel> SelectInitMembersModels(MemberInitExpression memberInitExpression, bool isAfterGroupBy)
@@ -102,7 +120,7 @@ public abstract class LinqToKQLTranslatorBase
         var res = new List<SelectMemeberModel>();
         foreach (var binding in memberInitExpression.Bindings)
         {
-            var name = binding.Member.Name;
+            var name = GetMemberName(binding.Member);
             var value = isAfterGroupBy || Config.DisableNestedProjection
                 ? name
                 : SelectMembers(((MemberAssignment)binding).Expression);
@@ -132,7 +150,7 @@ public abstract class LinqToKQLTranslatorBase
         }
         else if (arg is MemberExpression mb2)
         {
-            var propName = mb2.Member.Name;
+            var propName = GetMemberName(mb2.Member);
             return propName;
         }
         else if (arg is ConstantExpression constant)
