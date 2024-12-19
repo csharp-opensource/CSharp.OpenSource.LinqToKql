@@ -27,6 +27,16 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
         );
 
     [Fact]
+    public async Task Translate_ShouldHandleWhereWitContainsWithListAsync()
+    {
+        var test = new List<string> { "name1", "name2", "name3" };
+        await AssertQueryAsync(
+            _q.Where(x => test.Contains(x.Name)),
+            [_tableName, "where Name in ('name1', 'name2', 'name3')"]
+        );
+    }
+
+    [Fact]
     public Task Translate_ShouldHandleWhereWithAndAsync()
         => AssertQueryAsync(
             _q.Where(x => x.Id > 1 && x.Id == 3),
