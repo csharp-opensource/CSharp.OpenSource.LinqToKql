@@ -163,20 +163,26 @@ public abstract class LinqToKQLTranslatorBase
     private string BuildFilterCustomMethodCall(MethodCallExpression methodCall)
     {
         var methodName = methodCall.Method.Name;
-        var leftSide = methodCall.Arguments.Count > 1 ? methodCall.Arguments[1] : methodCall.Object!;
+        if (methodName == "KqlLike") { return HandleKqlLike(methodCall); }
+        var leftSideKql = BuildFilter(methodCall.Arguments.Count > 1 ? methodCall.Arguments[1] : methodCall.Object!);
+        if (methodName == "Like") { return HandleLike(methodCall, leftSideKql); }
+
+        var rightSideKql = BuildFilter(methodCall.Arguments[0]);
+        if (leftSideKql.StartsWith('(') && leftSideKql.EndsWith(')'))
+        {
+            (rightSideKql, leftSideKql) = (leftSideKql, rightSideKql);
+        }
         return methodName switch
         {
-            nameof(string.Contains) when methodCall.Method.DeclaringType == typeof(string) => $"{BuildFilter(leftSide)} has_cs {BuildFilter(methodCall.Arguments[0])}",
-            nameof(Enumerable.Contains) => $"{BuildFilter(leftSide)} in ({BuildFilter(methodCall.Arguments[0]).TrimStart('(').TrimEnd(')')})",
-            nameof(string.StartsWith) => $"{BuildFilter(leftSide)} startswith_cs {BuildFilter(methodCall.Arguments[0])}",
-            nameof(string.EndsWith) => $"{BuildFilter(leftSide)} endswith_cs {BuildFilter(methodCall.Arguments[0])}",
-            nameof(string.Equals) => $"{BuildFilter(leftSide)} == {BuildFilter(methodCall.Arguments[0])}",
-            "KqlLike" => HandleKqlLike(methodCall),
-            "Like" => HandleLike(methodCall, leftSide),
+            nameof(string.Contains) when methodCall.Method.DeclaringType == typeof(string) => $"{leftSideKql} has_cs {rightSideKql}",
+            nameof(Enumerable.Contains) => $"{leftSideKql} in ({rightSideKql.TrimStart('(').TrimEnd(')')})",
+            nameof(string.StartsWith) => $"{leftSideKql} startswith_cs {rightSideKql}",
+            nameof(string.EndsWith) => $"{leftSideKql} endswith_cs {rightSideKql}",
+            nameof(string.Equals) => $"{leftSideKql} == {rightSideKql}",
             _ => throw new NotSupportedException($"{nameof(BuildFilterCustomMethodCall)} - Method {methodCall.Method.Name} is not supported."),
         };
 
-        string HandleLike(MethodCallExpression methodCall, Expression leftSide)
+        string HandleLike(MethodCallExpression methodCall, string leftSideKql)
         {
             var likeValueConst = methodCall.Arguments
                 .Where(x => x.NodeType == ExpressionType.Constant)
@@ -187,7 +193,6 @@ public abstract class LinqToKQLTranslatorBase
             if (likeValueConst == null) { throw new NotSupportedException($"{nameof(HandleLike)} - likeValueConst is null."); }
             var likeValue = likeValueConst.Value!.ToString()!;
             var filter = likeValue.Trim('%').GetKQLValue();
-            var leftSideKql = BuildFilter(leftSide);
             if (likeValue.StartsWith("%") && likeValue.EndsWith("%"))
             {
                 return $"{leftSideKql} has_cs {filter}";
