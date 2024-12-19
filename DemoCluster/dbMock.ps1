@@ -32,6 +32,5 @@ req @{
 }
 req @{
     db="TestDatabase1"
-    csl=".create table SampleTable ( Id: int, Name: string, Date: datetime, DateOnly: date, TimeOnly: timespan, Time: timespan, IsActive: bool, Year: int, Description: string, Type: string, Value: long, Numbers: dynamic, Nested: dynamic )"
+    csl=".create table SampleTable ( Id: int, Name: string, Date: datetime, DateOnly: date, TimeOnly: timespan, Time: timespan, IsActive: bool, Year: int, Description: string, Type: string, Value: long, Numbers: dynamic, Nested: dynamic, prop_newtonsoft: long, prop_text_json: long, prop_data_member: long)"
 }
-
