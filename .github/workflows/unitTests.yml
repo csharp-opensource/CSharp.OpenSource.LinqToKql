@@ -1,13 +1,19 @@
 name: Unit Tests
 
 on: 
+    workflow_dispatch:
     push:
         branches: 
             - master
+        paths: 
+            - 'LinqToKql/**'
+            - 'LinqToKql.Test/**'
     pull_request:
         branches: 
             - master
-
+        paths: 
+            - 'LinqToKql/**'
+            - 'LinqToKql.Test/**'
 jobs:
   UnitTests:
     runs-on: ubuntu-latest

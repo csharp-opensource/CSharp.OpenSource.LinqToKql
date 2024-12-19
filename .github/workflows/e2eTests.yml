@@ -1,12 +1,19 @@
 name: End-to-End Tests
 
 on: 
+    workflow_dispatch:
     push:
         branches: 
             - master
+        paths: 
+            - 'LinqToKql/**'
+            - 'LinqToKql.Test/**'
     pull_request:
         branches: 
             - master
+        paths: 
+            - 'LinqToKql/**'
+            - 'LinqToKql.Test/**'
             
 jobs:
   e2eTests:

@@ -7,7 +7,12 @@ on:
         required: false
         default: ''
         type: string
-
+  push:
+    branches:
+      - master
+    paths: 
+        - 'LinqToKql/**'
+    
 jobs:
   createTagAndRelease:
     runs-on: ubuntu-latest
