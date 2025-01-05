@@ -57,6 +57,16 @@ public class KustoHttpClient : IKustoHttpClient
         {
             throw new InvalidOperationException("Failed to deserialize Kusto query result.");
         }
-        return JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(res.ToDictonaryList()))!;
+        var dict = res.ToDictonaryList();
+        object? valueToUse = dict;
+        if (!typeof(T).IsArray)
+        {
+            valueToUse = typeof(T).IsClass ? dict.FirstOrDefault() : dict.FirstOrDefault()?.Values?.FirstOrDefault()!;
+        }
+        if (valueToUse is null)
+        {
+            return default;
+        }
+        return JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(valueToUse))!;
     }
 }

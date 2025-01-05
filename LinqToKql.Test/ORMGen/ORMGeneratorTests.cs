@@ -2,6 +2,7 @@ using CSharp.OpenSource.LinqToKql.ORMGen;
 using CSharp.OpenSource.LinqToKql.Models;
 using CSharp.OpenSource.LinqToKql.Provider;
 using Moq;
+using CSharp.OpenSource.LinqToKql.Test.Attributes;
 
 namespace CSharp.OpenSource.LinqToKql.Test.ORMGen;
 
@@ -117,11 +118,10 @@ public class ORMGeneratorTests
         Assert.True(Directory.GetFiles(ormGenerator.Config.ModelsFolderPath, "*.cs", SearchOption.AllDirectories).Any());
     }
 
-    [Fact]
+    [E2EFact]
     public async Task GenerateAsync_ShouldCreateDbContextAndModelsE2E()
     {
         // Arrange & Act
-        if (!E2EHelper.IsE2E) { return; }
         var providerExecutor = E2EHelper.Client;
         var ormGenerator = new ORMGenerator(new()
         {

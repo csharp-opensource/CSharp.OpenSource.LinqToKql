@@ -6,7 +6,7 @@ namespace CSharp.OpenSource.LinqToKql.Provider;
 public abstract class KustoDbContext : IKustoDbContext
 {
     private IKustoDbContextExecutor _executor;
-    public ILinqToKqlProviderExecutor ProviderExecutor => _executor.Executor;
+    public ILinqToKqlProviderExecutor ProviderExecutor { get => _executor.Executor; set => _executor.Executor = value; }
     private LinqToKQLQueryTranslatorConfig? _config;
     public LinqToKQLQueryTranslatorConfig Config => _config ??= GetConfig();
     private LinqToKqlProvider<object> dummyProvider => new(string.Empty, expression: null, providerExecutor: ProviderExecutor, defaultDbName: DefaultDbName, config: GetConfig());
@@ -14,7 +14,7 @@ public abstract class KustoDbContext : IKustoDbContext
     public string? DefaultDbName { get; set; }
     public string TableOrKQL { get => ""; set => _ = value; }
 
-    public LinqToKQLQueryTranslator Translator => throw new NotImplementedException();
+    public LinqToKQLQueryTranslator Translator { get => dummyProvider.Translator; set => dummyProvider.Translator = value; }
 
     public Func<ILinqToKqlProvider, Exception, Task<bool>>? ShouldRetry { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 

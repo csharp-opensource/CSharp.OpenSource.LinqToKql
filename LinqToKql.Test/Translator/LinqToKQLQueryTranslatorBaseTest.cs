@@ -1,4 +1,6 @@
-﻿using CSharp.OpenSource.LinqToKql.Test.Model;
+﻿using CSharp.OpenSource.LinqToKql.Extensions;
+using CSharp.OpenSource.LinqToKql.Provider;
+using CSharp.OpenSource.LinqToKql.Test.Model;
 using CSharp.OpenSource.LinqToKql.Translator;
 
 namespace CSharp.OpenSource.LinqToKql.Test.Translator;
@@ -6,19 +8,21 @@ namespace CSharp.OpenSource.LinqToKql.Test.Translator;
 public abstract class LinqToKQLQueryTranslatorBaseTest
 {
     protected LinqToKQLQueryTranslator GetTranslator(LinqToKQLQueryTranslatorConfig? config = null) => new(config);
-    protected readonly string _tableName = "SampleTable";
-    protected readonly IQueryable<SampleObject> _q = new[] { new SampleObject { } }.AsQueryable();
+    protected const string _tableName = "SampleTable";
+    protected readonly IQueryable<SampleObject> _q = new LinqToKqlProvider<SampleObject>(_tableName, null, E2EHelper.Client, null, null);
 
     protected async Task AssertQueryAsync<T>(IQueryable<T> queryable, string[] expectedArray, LinqToKQLQueryTranslatorConfig? config = null)
     {
         config ??= new();
         var translator = GetTranslator(config);
+        var kql = queryable.AsKQL();
+        kql.Translator = translator;
         var expected = string.Join(
             translator.PipeWithIndentation,
             expectedArray
         );
         // Act
-        var actual = translator.Translate(queryable, _tableName);
+        var actual = kql.TranslateToKQL();
 
         // Assert
         var partsExpected = expected.Split(config.PipeWithIndentation);

@@ -168,6 +168,7 @@ public abstract class LinqToKQLTranslatorBase
             {
                 MethodCallExpression methodCall => BuildFilterCustomMethodCall(methodCall),
                 UnaryExpression unaryExpression when unaryExpression.NodeType == ExpressionType.Not => $"not({BuildFilter(unaryExpression.Operand)})",
+                UnaryExpression unaryExpression when unaryExpression.NodeType == ExpressionType.Convert => BuildFilter(unaryExpression.Operand),
                 BinaryExpression binary => BuildBinaryOperation(binary),
                 MemberExpression member => BuildMemberExpression(member),
                 NewArrayExpression newArrayExpression => $"({string.Join(", ", newArrayExpression.Expressions.Select(BuildFilter))})",
