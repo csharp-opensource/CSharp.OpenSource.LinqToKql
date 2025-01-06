@@ -339,4 +339,17 @@ public abstract class LinqToKQLTranslatorBase
             ExpressionType.Negate => "!",
             _ => throw new NotSupportedException($"Operator {nodeType} is not supported.")
         };
+
+    protected Expression SkipCast(Expression parent)
+    {
+        if (parent is not MethodCallExpression methodCall)
+        {
+            return parent;
+        }
+        if (methodCall.Arguments.Count > 0 && methodCall.Method.Name == nameof(Enumerable.Cast))
+        {
+            return methodCall.Arguments[0];
+        }
+        return parent;
+    }
 }

@@ -15,7 +15,7 @@ public abstract class LinqToKQLQueryTranslatorBaseTest
     {
         config ??= new();
         var translator = GetTranslator(config);
-        var kql = queryable.AsKQL();
+        var kql = queryable.AsKQL().Clone<T>();
         kql.Translator = translator;
         var expected = string.Join(
             translator.PipeWithIndentation,
