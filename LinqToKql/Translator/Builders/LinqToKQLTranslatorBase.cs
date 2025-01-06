@@ -194,7 +194,7 @@ public abstract class LinqToKQLTranslatorBase
         return methodName switch
         {
             nameof(string.Contains) when methodCall.Method.DeclaringType == typeof(string) => $"{leftSideKql} has_cs {rightSideKql}",
-            nameof(Enumerable.Contains) => $"{leftSideKql} in ({rightSideKql.TrimStart('(').TrimEnd(')')})",
+            nameof(Enumerable.Contains) => $"{leftSideKql} has_all ({rightSideKql.TrimStart('(').TrimEnd(')')})",
             nameof(string.StartsWith) => $"{leftSideKql} startswith_cs {rightSideKql}",
             nameof(string.EndsWith) => $"{leftSideKql} endswith_cs {rightSideKql}",
             nameof(string.Equals) => $"{leftSideKql} == {rightSideKql}",

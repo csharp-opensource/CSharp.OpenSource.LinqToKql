@@ -9,8 +9,6 @@ public class SampleObject
     public int? Id { get; set; }
     public string Name { get; set; }
     public DateTime? Date { get; set; }
-    public DateOnly? DateOnly { get; set; }
-    public TimeOnly? TimeOnly { get; set; }
     public TimeSpan? Time { get; set; }
     public bool? IsActive { get; set; }
     public int? Year { get; set; }

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using CSharp.OpenSource.LinqToKql.Models;
+using System.Collections;
 
 namespace CSharp.OpenSource.LinqToKql.Extensions;
 
@@ -20,5 +21,21 @@ public static class ObjectExtension
     public static bool KqlLike(this string str, string pattern, char wildCardSymbol = '%')
     {
         throw new Exception("This method should not be called. It is used for translation purposes only.");
+    }
+
+    public static T? GetResult<T>(this IKustoQueryResult result, Func<object, T> serializer)
+    {
+        var dict = result.ToDictonaryList();
+        object? valueToUse = dict;
+        var isList = typeof(IEnumerable).IsAssignableFrom(typeof(T));
+        if (!isList)
+        {
+            valueToUse = typeof(T).IsClass ? dict.FirstOrDefault() : dict.FirstOrDefault()?.Values?.FirstOrDefault()!;
+        }
+        if (valueToUse is null)
+        {
+            return default;
+        }
+        return serializer(valueToUse);
     }
 }

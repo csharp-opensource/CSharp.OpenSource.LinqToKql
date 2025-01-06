@@ -2,5 +2,5 @@
 
 public interface ILinqToKqlProviderExecutor
 {
-    Task<T> ExecuteAsync<T>(string kql, string? database = null);
+    Task<T?> ExecuteAsync<T>(string kql, string? database = null);
 }

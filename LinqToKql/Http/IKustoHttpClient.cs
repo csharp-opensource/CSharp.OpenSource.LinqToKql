@@ -6,5 +6,5 @@ namespace CSharp.OpenSource.LinqToKql.Http;
 public interface IKustoHttpClient : ILinqToKqlProviderExecutor
 {
     Task<IKustoQueryResult?> QueryAsync(string csl, string apiVersion = "v2", string? database = null);
-    Task<T> QueryAsync<T>(string csl, string apiVersion = "v2", string? database = null);
+    Task<T?> QueryAsync<T>(string csl, string apiVersion = "v2", string? database = null);
 }
