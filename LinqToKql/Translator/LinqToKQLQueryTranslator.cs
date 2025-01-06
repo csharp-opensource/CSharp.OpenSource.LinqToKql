@@ -48,6 +48,10 @@ public class LinqToKQLQueryTranslator
         TranslateExpression(methodCall.Arguments[0], kqlBuilder, expression);
 
         // Handle the current method call
+        if (methodCall.Method.Name == nameof(Enumerable.Cast))
+        {
+            return;
+        }
         var translator = _translators.FirstOrDefault(t => t.LinqMethods.Contains(methodCall.Method.Name));
         if (translator is null)
         {

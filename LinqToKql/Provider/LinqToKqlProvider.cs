@@ -66,14 +66,17 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
 
     public virtual LinqToKqlProvider<S> Clone<S>(Expression? expression = null, bool cloneExpressionOnNull = true)
     {
-        var kql = TableOrKQL;
         expression ??= cloneExpressionOnNull ? Expression : null;
-        if (typeof(T) != typeof(S))
+        if (typeof(T) != typeof(S) && expression != null)
         {
-            // need to move to new expression and save the old one
-            //kql = TranslateToKQL(expression);
-            //expression = null;
+            expression = Expression.Call(
+                typeof(Queryable),
+                nameof(Queryable.Cast),
+                new[] { typeof(S) },
+                expression
+            );
         }
+        var kql = TableOrKQL;
         return new(
             kql,
             expression,
