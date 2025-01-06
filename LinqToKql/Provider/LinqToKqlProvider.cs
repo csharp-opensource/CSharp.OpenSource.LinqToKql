@@ -6,14 +6,14 @@ namespace CSharp.OpenSource.LinqToKql.Provider;
 
 public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
 {
-    public LinqToKQLQueryTranslator Translator { get; }
+    public LinqToKQLQueryTranslator Translator { get; set; }
     public string TableOrKQL { get; set; }
     public string? DefaultDbName { get; set; }
     public Type ElementType => typeof(T);
     private readonly Expression _expression;
     public Expression Expression => _expression;
     public IQueryProvider Provider => this;
-    public ILinqToKqlProviderExecutor ProviderExecutor { get; }
+    public ILinqToKqlProviderExecutor ProviderExecutor { get; set; }
     public Func<ILinqToKqlProvider, Exception, Task<bool>>? ShouldRetry { get; set; }
 
     public LinqToKqlProvider(
@@ -66,13 +66,17 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
 
     public virtual LinqToKqlProvider<S> Clone<S>(Expression? expression = null, bool cloneExpressionOnNull = true)
     {
-        var kql = TableOrKQL;
         expression ??= cloneExpressionOnNull ? Expression : null;
-        if (typeof(T) != typeof(S))
+        if (typeof(T) != typeof(S) && expression != null)
         {
-            expression = null;
-            kql = TranslateToKQL();
+            expression = Expression.Call(
+                typeof(Queryable),
+                nameof(Queryable.Cast),
+                new[] { typeof(S) },
+                expression
+            );
         }
+        var kql = TableOrKQL;
         return new(
             kql,
             expression,

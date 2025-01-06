@@ -25,7 +25,7 @@ public class SelectLinqToKQLTranslator : LinqToKQLTranslatorBase
         }
 
         var lambda = (LambdaExpression)((UnaryExpression)methodCall.Arguments[1]).Operand;
-        var isAfterGroupBy = (methodCall.Arguments[0] as MethodCallExpression)?.Method.Name == "GroupBy";
+        var isAfterGroupBy = (SkipCast(methodCall.Arguments[0]) as MethodCallExpression)?.Method.Name == "GroupBy";
         var props = SelectMembers(lambda.Body, isAfterGroupBy);
         if (string.IsNullOrEmpty(props)) { return ""; }
         var action = methodCall.Method.Name == nameof(Enumerable.DistinctBy) ? "distinct" : (_extendOps.Any(props.Contains) ? "extend" : "project");

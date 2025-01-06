@@ -1,4 +1,5 @@
 ﻿using CSharp.OpenSource.LinqToKql.Extensions;
+using CSharp.OpenSource.LinqToKql.Test.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace CSharp.OpenSource.LinqToKql.Test.Translator;
@@ -23,7 +24,7 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public Task Translate_ShouldHandleWhereWitContainsAsync()
         => AssertQueryAsync(
             _q.Where(x => new string[] { "name1", "name2", "name3" }.Contains(x.Name)),
-            [_tableName, "where Name in ('name1', 'name2', 'name3')"]
+            [_tableName, "where Name has_all ('name1', 'name2', 'name3')"]
         );
 
     [Fact]
@@ -32,7 +33,7 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
         var test = new List<string> { "name1", "name2", "name3" };
         await AssertQueryAsync(
             _q.Where(x => test.Contains(x.Name)),
-            [_tableName, "where Name in ('name1', 'name2', 'name3')"]
+            [_tableName, "where Name has_all ('name1', 'name2', 'name3')"]
         );
     }
 
@@ -69,11 +70,11 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     {
         var filter = new DateOnly(2000, 1, 1);
         await AssertQueryAsync(
-            _q.Where(x => x.DateOnly > filter).Select(x => new { x.Date, x.Description }),
+            _q.AsKQL<TimeOnlyObject>().Where(x => x.DateOnly > filter).Select(x => new { x.Date, x.Description }),
             [_tableName, $"where DateOnly > datetime({filter:yyyy-MM-dd})", "project Date, Description"]
         );
         await AssertQueryAsync(
-            _q.Where(x => x.DateOnly > new DateOnly(1999, 1, 1)).Select(x => new { x.Date, x.Description }),
+            _q.AsKQL<TimeOnlyObject>().Where(x => x.DateOnly > new DateOnly(1999, 1, 1)).Select(x => new { x.Date, x.Description }),
             [_tableName, $"where DateOnly > datetime({new DateOnly(1999, 1, 1):yyyy-MM-dd})", "project Date, Description"]
         );
     }
@@ -97,11 +98,11 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     {
         var filter = new TimeOnly(23, 1, 1);
         await AssertQueryAsync(
-            _q.Where(x => x.TimeOnly > filter).Select(x => new { x.Date, x.Description }),
+            _q.AsKQL<TimeOnlyObject>().Where(x => x.TimeOnly > filter).Select(x => new { x.Date, x.Description }),
             [_tableName, $"where TimeOnly > timespan({filter:HH:mm:ss.f})", "project Date, Description"]
         );
         await AssertQueryAsync(
-            _q.Where(x => x.TimeOnly > new TimeOnly(22, 1, 1)).Select(x => new { x.Date, x.Description }),
+            _q.AsKQL<TimeOnlyObject>().Where(x => x.TimeOnly > new TimeOnly(22, 1, 1)).Select(x => new { x.Date, x.Description }),
             [_tableName, $"where TimeOnly > timespan({new TimeOnly(22, 1, 1):HH:mm:ss.f})", "project Date, Description"]
         );
     }
@@ -110,14 +111,14 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public Task Translate_WhereListInAsync()
         => AssertQueryAsync(
             _q.Where(x => x.Numbers.Contains(1)).Select(x => new { x.Date, x.Description }),
-            [_tableName, $"where Numbers in (1)", "project Date, Description"]
+            [_tableName, $"where Numbers has_all (1)", "project Date, Description"]
         );
 
     [Fact]
     public Task Translate_WhereListNotInAsync()
         => AssertQueryAsync(
             _q.Where(x => !x.Numbers.Contains(1)).Select(x => new { x.Date, x.Description }),
-            [_tableName, $"where not(Numbers in (1))", "project Date, Description"]
+            [_tableName, $"where not(Numbers has_all (1))", "project Date, Description"]
         );
 
     [Fact]

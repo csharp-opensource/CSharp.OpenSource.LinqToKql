@@ -21,4 +21,7 @@ public partial class SampleTable
     public virtual long? Value { get; set; }
     public virtual object? Numbers { get; set; }
     public virtual object? Nested { get; set; }
+    public virtual long? prop_newtonsoft { get; set; }
+    public virtual long? prop_text_json { get; set; }
+    public virtual long? prop_data_member { get; set; }
 }

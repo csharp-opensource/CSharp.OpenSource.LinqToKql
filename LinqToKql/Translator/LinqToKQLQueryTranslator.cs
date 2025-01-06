@@ -45,13 +45,21 @@ public class LinqToKQLQueryTranslator
         }
 
         // Recursively translate the inner expression
-        TranslateExpression(methodCall.Arguments[0], kqlBuilder, expression);
+        var methodName = methodCall.Method.Name;
+        var child = methodCall.Arguments[0];
+        var isCast = methodName == nameof(Enumerable.Cast);
+        var childParent = isCast ? parent : methodCall;
+        TranslateExpression(child, kqlBuilder, childParent);
 
         // Handle the current method call
-        var translator = _translators.FirstOrDefault(t => t.LinqMethods.Contains(methodCall.Method.Name));
+        if (isCast)
+        {
+            return;
+        }
+        var translator = _translators.FirstOrDefault(t => t.LinqMethods.Contains(methodName));
         if (translator is null)
         {
-            throw new NotSupportedException($"{GetType().Name} - Method {methodCall.Method.Name} is not supported.");
+            throw new NotSupportedException($"{GetType().Name} - Method {methodName} is not supported.");
         }
         var kql = translator.Handle(methodCall, parent);
         if (!string.IsNullOrEmpty(kql))

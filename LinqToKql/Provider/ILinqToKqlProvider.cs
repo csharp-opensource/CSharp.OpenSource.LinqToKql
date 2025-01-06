@@ -11,9 +11,9 @@ public interface ILinqToKqlProvider
 {
     string? DefaultDbName { get; set; }
     string TableOrKQL { get; set; }
-    LinqToKQLQueryTranslator Translator { get; }
+    LinqToKQLQueryTranslator Translator { get; set; }
     Func<ILinqToKqlProvider, Exception, Task<bool>>? ShouldRetry { get; set; }
-    ILinqToKqlProviderExecutor ProviderExecutor { get; }
+    ILinqToKqlProviderExecutor ProviderExecutor { get; set; }
 
     LinqToKqlProvider<S> Clone<S>(Expression? expression = null, bool cloneExpressionOnNull = true);
     string TranslateToKQL(Expression? expression = null);

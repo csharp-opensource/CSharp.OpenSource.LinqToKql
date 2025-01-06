@@ -4,7 +4,17 @@ namespace CSharp.OpenSource.LinqToKql.Translator.Builders;
 
 public class WhereLinqToKQLTranslator : LinqToKQLTranslatorBase
 {
-    public WhereLinqToKQLTranslator(LinqToKQLQueryTranslatorConfig config) : base(config, new() { nameof(Enumerable.Where) })
+    public WhereLinqToKQLTranslator(LinqToKQLQueryTranslatorConfig config) : base(
+        config,
+        new()
+        {
+            nameof(Enumerable.Where),
+            nameof(Enumerable.Any),
+            nameof(Enumerable.Single),
+            nameof(Enumerable.SingleOrDefault),
+            nameof(Enumerable.First),
+            nameof(Enumerable.FirstOrDefault),
+        })
     {
     }
 
@@ -12,6 +22,15 @@ public class WhereLinqToKQLTranslator : LinqToKQLTranslatorBase
     {
         var lambda = (LambdaExpression)((UnaryExpression)methodCall.Arguments[1]).Operand;
         var condition = BuildFilter(lambda.Body);
-        return $"where {condition}";
-    }   
+        var kql = $"where {condition}";
+        if (methodCall.Method.Name is nameof(Enumerable.Where))
+        {
+            return kql;
+        }
+        if (methodCall.Method.Name is nameof(Enumerable.Any))
+        {
+            return $"{kql}{Config.PipeWithIndentation}summarize c=count(){Config.PipeWithIndentation}project res=iff(c > 0, true, false)";
+        }
+        return $"{kql}{Config.PipeWithIndentation}take 1";
+    }
 }

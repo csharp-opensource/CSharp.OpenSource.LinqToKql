@@ -168,6 +168,7 @@ public abstract class LinqToKQLTranslatorBase
             {
                 MethodCallExpression methodCall => BuildFilterCustomMethodCall(methodCall),
                 UnaryExpression unaryExpression when unaryExpression.NodeType == ExpressionType.Not => $"not({BuildFilter(unaryExpression.Operand)})",
+                UnaryExpression unaryExpression when unaryExpression.NodeType == ExpressionType.Convert => BuildFilter(unaryExpression.Operand),
                 BinaryExpression binary => BuildBinaryOperation(binary),
                 MemberExpression member => BuildMemberExpression(member),
                 NewArrayExpression newArrayExpression => $"({string.Join(", ", newArrayExpression.Expressions.Select(BuildFilter))})",
@@ -193,7 +194,7 @@ public abstract class LinqToKQLTranslatorBase
         return methodName switch
         {
             nameof(string.Contains) when methodCall.Method.DeclaringType == typeof(string) => $"{leftSideKql} has_cs {rightSideKql}",
-            nameof(Enumerable.Contains) => $"{leftSideKql} in ({rightSideKql.TrimStart('(').TrimEnd(')')})",
+            nameof(Enumerable.Contains) => $"{leftSideKql} has_all ({rightSideKql.TrimStart('(').TrimEnd(')')})",
             nameof(string.StartsWith) => $"{leftSideKql} startswith_cs {rightSideKql}",
             nameof(string.EndsWith) => $"{leftSideKql} endswith_cs {rightSideKql}",
             nameof(string.Equals) => $"{leftSideKql} == {rightSideKql}",
@@ -338,4 +339,17 @@ public abstract class LinqToKQLTranslatorBase
             ExpressionType.Negate => "!",
             _ => throw new NotSupportedException($"Operator {nodeType} is not supported.")
         };
+
+    protected Expression SkipCast(Expression parent)
+    {
+        if (parent is not MethodCallExpression methodCall)
+        {
+            return parent;
+        }
+        if (methodCall.Arguments.Count > 0 && methodCall.Method.Name == nameof(Enumerable.Cast))
+        {
+            return methodCall.Arguments[0];
+        }
+        return parent;
+    }
 }
