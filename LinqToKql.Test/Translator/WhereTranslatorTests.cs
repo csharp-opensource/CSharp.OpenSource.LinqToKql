@@ -24,7 +24,7 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public Task Translate_ShouldHandleWhereWitContainsAsync()
         => AssertQueryAsync(
             _q.Where(x => new string[] { "name1", "name2", "name3" }.Contains(x.Name)),
-            [_tableName, "where Name has_all ('name1', 'name2', 'name3')"]
+            [_tableName, "where Name has_any ('name1', 'name2', 'name3')"]
         );
 
     [Fact]
@@ -33,7 +33,7 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
         var test = new List<string> { "name1", "name2", "name3" };
         await AssertQueryAsync(
             _q.Where(x => test.Contains(x.Name)),
-            [_tableName, "where Name has_all ('name1', 'name2', 'name3')"]
+            [_tableName, "where Name has_any ('name1', 'name2', 'name3')"]
         );
     }
 
@@ -111,14 +111,14 @@ public class WhereTranslatorTests : LinqToKQLQueryTranslatorBaseTest
     public Task Translate_WhereListInAsync()
         => AssertQueryAsync(
             _q.Where(x => x.Numbers.Contains(1)).Select(x => new { x.Date, x.Description }),
-            [_tableName, $"where Numbers has_all (1)", "project Date, Description"]
+            [_tableName, $"where Numbers has_any (1)", "project Date, Description"]
         );
 
     [Fact]
     public Task Translate_WhereListNotInAsync()
         => AssertQueryAsync(
             _q.Where(x => !x.Numbers.Contains(1)).Select(x => new { x.Date, x.Description }),
-            [_tableName, $"where not(Numbers has_all (1))", "project Date, Description"]
+            [_tableName, $"where not(Numbers has_any (1))", "project Date, Description"]
         );
 
     [Fact]
