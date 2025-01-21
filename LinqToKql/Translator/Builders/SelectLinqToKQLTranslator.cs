@@ -18,10 +18,10 @@ public class SelectLinqToKQLTranslator : LinqToKQLTranslatorBase
     {
         if (methodCall.Method.Name == nameof(Enumerable.Distinct))
         {
-            var elementType = methodCall.Arguments[0].Type.GetGenericArguments().First();
-            var properties = elementType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            var propNames = properties.Select(p => p.Name).ToArray();
-            return $"distinct {string.Join(", ", propNames)}";
+            // var elementType = methodCall.Arguments[0].Type.GetGenericArguments().First();
+            // var properties = elementType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            // var propNames = properties.Select(p => p.Name).ToArray();
+            return $"distinct *";
         }
 
         var lambda = (LambdaExpression)((UnaryExpression)methodCall.Arguments[1]).Operand;
