@@ -9,37 +9,37 @@
 
 ## Generate
 ```csharp
-        var providerExecutor = _mockExecutor.Object;
-        var ormGenerator = new ORMGenerator(new()
+var providerExecutor = _mockExecutor.Object;
+var ormGenerator = new ORMGenerator(new()
+{
+    ProviderExecutor = providerExecutor,
+    ModelsFolderPath = "../../../../ORMGeneratorTests/Models",
+    DbContextFolderPath = "../../../../ORMGeneratorTests",
+    DbContextName = "AutoGenORMKustoDbContext",
+    Namespace = "AutoGen",
+    ModelsNamespace = "AutoGen",
+    DbContextNamespace = "AutoGen",
+    CreateDbContext = true,
+    CleanFolderBeforeCreate = true,
+    EnableNullable = true,
+    FileScopedNamespaces = true,
+    DatabaseConfigs = new List<ORMGeneratorDatabaseConfig>
+    {
+        new ORMGeneratorDatabaseConfig
         {
-            ProviderExecutor = providerExecutor,
-            ModelsFolderPath = "../../../../ORMGeneratorTests/Models",
-            DbContextFolderPath = "../../../../ORMGeneratorTests",
-            DbContextName = "AutoGenORMKustoDbContext",
-            Namespace = "AutoGen",
-            ModelsNamespace = "AutoGen",
-            DbContextNamespace = "AutoGen",
-            CreateDbContext = true,
-            CleanFolderBeforeCreate = true,
-            EnableNullable = true,
-            FileScopedNamespaces = true,
-            DatabaseConfigs = new List<ORMGeneratorDatabaseConfig>
-            {
-                new ORMGeneratorDatabaseConfig
-                {
-                    DatabaseName = DbName1,
-                    Filters = new ORMGeneratorFilterConfig()
-                },
-                new ORMGeneratorDatabaseConfig
-                {
-                    DatabaseName = DbName2,
-                    DatabaseDisplayName = "db2",
-                    Filters = new ORMGeneratorFilterConfig()
-                }
-            }
-        });
-        await _ormGenerator.GenerateAsync();
-        // output example https://github.com/csharp-opensource/CSharp.OpenSource.LinqToKql/tree/master/Samples/ORMGeneratorTest
+            DatabaseName = DbName1,
+            Filters = new ORMGeneratorFilterConfig()
+        },
+        new ORMGeneratorDatabaseConfig
+        {
+            DatabaseName = DbName2,
+            DatabaseDisplayName = "db2",
+            Filters = new ORMGeneratorFilterConfig()
+        }
+    }
+});
+await _ormGenerator.GenerateAsync();
+// output example https://github.com/csharp-opensource/CSharp.OpenSource.LinqToKql/tree/master/Samples/ORMGeneratorTest
 ```
 ## Usage
 ```csharp
