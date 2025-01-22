@@ -414,8 +414,14 @@ public class ORMGenerator
 
     public bool Match(string input, string pattern)
     {
-        if (string.IsNullOrEmpty(pattern)) return string.IsNullOrEmpty(input);
-
+        if (string.IsNullOrEmpty(pattern)) 
+        {
+            return string.IsNullOrEmpty(input);
+        }
+        if (input == pattern)
+        {
+            return true;
+        }
         int i = 0, j = 0; // Pointers for input and pattern
         int starIndex = -1, matchIndex = -1;
 
