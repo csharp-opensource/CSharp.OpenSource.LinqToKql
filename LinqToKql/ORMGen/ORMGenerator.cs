@@ -187,8 +187,8 @@ public class ORMGenerator
     private List<string> GetModelDeclarationLines(string typeName, string name, string databaseName)
     {
         var modification = Config.TableOrFunctionModifications
-            .Where(x => x.DatabasePatterns.Count == 0 || x.DatabasePatterns.Any(p => Match(p, databaseName)))
-            .Where(x => x.TableOrFunctionPatterns.Count == 0 || x.TableOrFunctionPatterns.Any(p => Match(p, name)))
+            .Where(x => x.DatabasePatterns.Count == 0 || x.DatabasePatterns.Any(p => Match(databaseName, p)))
+            .Where(x => x.TableOrFunctionPatterns.Count == 0 || x.TableOrFunctionPatterns.Any(p => Match(name, p)))
             .FirstOrDefault();
         var res = new List<string>();
         var declaration = $"public partial class {typeName}";
@@ -215,10 +215,10 @@ public class ORMGenerator
     private void GenerateProperty(string tableOrFunctionName, ORMGeneratorDatabaseConfig dbConfig, List<string> lines, string columnType, string columnName)
     {
         var modification = Config.ColumnModifications
-            .Where(x => x.DatabasePatterns.Count == 0 || x.DatabasePatterns.Any(p => Match(p, dbConfig.DatabaseName)))
-            .Where(x => x.TableOrFunctionPatterns.Count == 0 || x.TableOrFunctionPatterns.Any(p => Match(p, tableOrFunctionName)))
-            .Where(x => x.ColumnNamePatterns.Count == 0 || x.ColumnNamePatterns.Any(p => Match(p, columnName)))
-            .Where(x => x.ColumnTypePatterns.Count == 0 || x.ColumnTypePatterns.Any(p => Match(p, columnType)))
+            .Where(x => x.DatabasePatterns.Count == 0 || x.DatabasePatterns.Any(p => Match(dbConfig.DatabaseName, p)))
+            .Where(x => x.TableOrFunctionPatterns.Count == 0 || x.TableOrFunctionPatterns.Any(p => Match(tableOrFunctionName, p)))
+            .Where(x => x.ColumnNamePatterns.Count == 0 || x.ColumnNamePatterns.Any(p => Match(columnName, p)))
+            .Where(x => x.ColumnTypePatterns.Count == 0 || x.ColumnTypePatterns.Any(p => Match(columnType, p)))
             .FirstOrDefault();
         if (modification?.Exclude == true)
         {
