@@ -215,10 +215,10 @@ public class ORMGenerator
     private void GenerateProperty(string tableOrFunctionName, ORMGeneratorDatabaseConfig dbConfig, List<string> lines, string columnType, string columnName)
     {
         var modification = Config.ColumnModifications
-            .Where(x => x.DatabasePatterns.Count == 0 || x.DatabasePatterns.Any(p => Match(dbConfig.DatabaseName, p)))
+            .Where(x => x.DatabasePatterns.Count == 0 || x.DatabasePatterns.Any(p => Match(dbConfig.DatabaseName, p) || Match(dbConfig.DatabaseDisplayName, p)))
             .Where(x => x.TableOrFunctionPatterns.Count == 0 || x.TableOrFunctionPatterns.Any(p => Match(tableOrFunctionName, p)))
             .Where(x => x.ColumnNamePatterns.Count == 0 || x.ColumnNamePatterns.Any(p => Match(columnName, p)))
-            .Where(x => x.ColumnTypePatterns.Count == 0 || x.ColumnTypePatterns.Any(p => Match(columnType, p)))
+            .Where(x => x.ColumnTypePatterns.Count == 0 || x.ColumnTypePatterns.Any(p => Match(columnType, p) || Match(DataTypeTranslate(columnType), p)))
             .FirstOrDefault();
         if (modification?.Exclude == true)
         {
