@@ -218,6 +218,7 @@ public class ORMGenerator
             .Where(x => x.DatabasePatterns.Count == 0 || x.DatabasePatterns.Any(p => Match(p, dbConfig.DatabaseName)))
             .Where(x => x.TableOrFunctionPatterns.Count == 0 || x.TableOrFunctionPatterns.Any(p => Match(p, tableOrFunctionName)))
             .Where(x => x.ColumnNamePatterns.Count == 0 || x.ColumnNamePatterns.Any(p => Match(p, columnName)))
+            .Where(x => x.ColumnTypePatterns.Count == 0 || x.ColumnTypePatterns.Any(p => Match(p, columnType)))
             .FirstOrDefault();
         if (modification?.Exclude == true)
         {
