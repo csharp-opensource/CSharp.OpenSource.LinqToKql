@@ -222,7 +222,7 @@ public class ORMGeneratorTests
         // Arrange & Act
         var ormGenerator = new ORMGenerator(new());
         var isMatch1 = ormGenerator.Match("TestTable", "Test*");
-        var isMatch2 = ormGenerator.Match("TestTable", "Test?able");
+        var isMatch2 = ormGenerator.Match("TestTable", "Test*able");
         var isMatch3 = ormGenerator.Match("TestTable", "Table");
 
         // Assert
@@ -272,5 +272,59 @@ public class ORMGeneratorTests
             Assert.True(File.Exists(ormGenerator.Config.DbContextFilePath));
             Assert.True(Directory.GetFiles(ormGenerator.Config.ModelsFolderPath, "*.cs", SearchOption.AllDirectories).Any());
         }
+    }
+
+    [Theory]
+    [InlineData("Test*", "TestTable", true)]
+    [InlineData("Test*able", "TestTable", true)]
+    [InlineData("Table", "TestTable", false)]
+    [InlineData("Test*", "Test", true)]
+    [InlineData("*Table", "TestTable", true)]
+    [InlineData("T*able", "TestTable", true)]
+    [InlineData("*able", "TestTable", true)]
+    [InlineData("*Test*", "TestTable", true)]
+    [InlineData("TestTable", "TestTable", true)]
+    [InlineData("*", "TestTable", true)]
+    [InlineData("*", "", true)]
+    [InlineData("Test*", "", false)]
+    [InlineData("*able", "Table", true)]
+    [InlineData("T*", "T", true)]
+    [InlineData("T*e", "Te", true)]
+    [InlineData("T*e", "TestTable", true)]
+    [InlineData("TestTable*", "TestTableExtra", true)]
+    [InlineData("Test*Extra", "TestTableExtra", true)]
+    [InlineData("*Test*", "AnyTestString", true)]
+    [InlineData("T*", "Tast", true)]
+    [InlineData("Te*st", "Test", true)]
+    [InlineData("Te*st", "TebTest", true)]
+    [InlineData("Te*st", "Tast", false)]
+    [InlineData("Te*st", "Teest", true)]
+    [InlineData("**", "TestTable", true)]
+    [InlineData("Te**le", "TestTable", true)]
+    [InlineData("Te*", "TestTable", true)]
+    [InlineData("Te*", "Te", true)]
+    [InlineData("*le", "Table", true)]
+    [InlineData("*st", "Test", true)]
+    [InlineData("Tes*", "Test", true)]
+    [InlineData("*Test*", "PrefixTestSuffix", true)]
+    [InlineData("*Test*", "Test", true)]
+    [InlineData("Test*", "Testing123", true)]
+    [InlineData("TestTable", "DifferentTable", false)]
+    [InlineData("Table*", "TestTable", false)]
+    [InlineData("Test*Extra", "TestExtraExtra", true)]
+    [InlineData("Te*Aable", "TebTable", false)]
+    [InlineData("*Test", "TestTable", false)]
+    [InlineData("*ble", "TestTable", true)]
+    [InlineData("T*", "X", false)]
+    [InlineData("Te*Zst", "TeTst", false)]
+    [InlineData("TestTable", "TestTableExtra", false)]
+    [InlineData("Test*", "Table", false)]
+    public void GlobMatchTest(string pattern, string input, bool expected)
+    {
+        // Arrange & Act
+        var ormGenerator = new ORMGenerator(new());
+        var isMatch = ormGenerator.Match(input, pattern);
+        // Assert
+        Assert.Equal(expected, isMatch);
     }
 }

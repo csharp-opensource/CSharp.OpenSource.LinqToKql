@@ -412,12 +412,48 @@ public class ORMGenerator
         return finalName;
     }
 
-    public bool Match(string value, string pattern)
+    public bool Match(string input, string pattern)
     {
-        // Escape the pattern and replace '*' and '?' with regex equivalents
-        string regexPattern = "^" + Regex.Escape(pattern)
-                                     .Replace("\\*", ".*")
-                                     .Replace("\\?", ".") + "$";
-        return Regex.IsMatch(value, regexPattern);
+        if (string.IsNullOrEmpty(pattern)) return string.IsNullOrEmpty(input);
+
+        int i = 0, j = 0; // Pointers for input and pattern
+        int starIndex = -1, matchIndex = -1;
+
+        while (i < input.Length)
+        {
+            if (j < pattern.Length && (pattern[j] == input[i] || pattern[j] == '?'))
+            {
+                // Match current character or '?'
+                i++;
+                j++;
+            }
+            else if (j < pattern.Length && pattern[j] == '*')
+            {
+                // Record the position of '*' and move to the next character in pattern
+                starIndex = j;
+                matchIndex = i;
+                j++;
+            }
+            else if (starIndex != -1)
+            {
+                // '*' matched some characters, try next character in input
+                j = starIndex + 1;
+                matchIndex++;
+                i = matchIndex;
+            }
+            else
+            {
+                // No match and no '*' to fallback to
+                return false;
+            }
+        }
+
+        // Check for trailing '*' in pattern
+        while (j < pattern.Length && pattern[j] == '*')
+        {
+            j++;
+        }
+
+        return j == pattern.Length;
     }
 }
