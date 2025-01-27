@@ -23,6 +23,10 @@ public abstract class LinqToKQLQueryTranslatorBaseTest
         );
         // Act
         var actual = kql.TranslateToKQL();
+        if (kql.PreExecute != null)
+        {
+            actual = kql.PreExecute(kql, actual);
+        }
 
         // Assert
         var partsExpected = expected.Split(config.PipeWithIndentation);

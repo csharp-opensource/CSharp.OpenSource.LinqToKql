@@ -16,7 +16,8 @@ public abstract class KustoDbContext : IKustoDbContext
 
     public LinqToKQLQueryTranslator Translator { get => dummyProvider.Translator; set => dummyProvider.Translator = value; }
 
-    public Func<ILinqToKqlProvider, Exception, Task<bool>>? ShouldRetry { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public Func<ILinqToKqlProvider, Exception, Task<bool>>? ShouldRetry { get => dummyProvider.ShouldRetry; set => dummyProvider.ShouldRetry = value; }
+    public Func<ILinqToKqlProvider, string, string>? PreExecute { get => dummyProvider.PreExecute; set => dummyProvider.PreExecute = value; }
 
     protected virtual LinqToKQLQueryTranslatorConfig GetConfig() => new();
 

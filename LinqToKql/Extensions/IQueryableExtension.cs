@@ -72,6 +72,13 @@ public static class IQueryableExtension
         return kql;
     }
 
+    public static ILinqToKqlProvider<T> WithPreExecute<T>(this IQueryable<T> q, Func<ILinqToKqlProvider, string, string> preExecute)
+    {
+        var kql = q.AsKQL();
+        kql.PreExecute = preExecute;
+        return kql;
+    }
+
     public static IQueryable<T> Or<T>(this IQueryable<T> q, List<Expression<Func<T, bool>>> predicates)
     {
         if (predicates == null || predicates.Count == 0) { return q; }

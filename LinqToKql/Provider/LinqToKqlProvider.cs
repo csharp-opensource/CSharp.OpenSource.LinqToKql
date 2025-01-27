@@ -15,6 +15,7 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
     public IQueryProvider Provider => this;
     public ILinqToKqlProviderExecutor ProviderExecutor { get; set; }
     public Func<ILinqToKqlProvider, Exception, Task<bool>>? ShouldRetry { get; set; }
+    public Func<ILinqToKqlProvider, string, string>? PreExecute { get; set; }
 
     public LinqToKqlProvider(
         string tableOrKQL,
@@ -22,7 +23,8 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
         ILinqToKqlProviderExecutor providerExecutor,
         LinqToKQLQueryTranslatorConfig? config = null,
         string? defaultDbName = null,
-        Func<ILinqToKqlProvider, Exception, Task<bool>>? shouldRetry = null)
+        Func<ILinqToKqlProvider, Exception, Task<bool>>? shouldRetry = null,
+        Func<ILinqToKqlProvider, string, string>? preExecute = null)
     {
         TableOrKQL = tableOrKQL;
         _expression = expression ?? Expression.Constant(this);
@@ -31,20 +33,25 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
         Translator = new(config);
         DefaultDbName = defaultDbName;
         ShouldRetry = shouldRetry;
+        PreExecute = preExecute;
     }
 
     public virtual object? Execute(Expression expression)
         => Execute<object>(expression);
 
     public virtual TResult Execute<TResult>(Expression expression)
-        => ExecuteAsync<TResult>(expression).GetAwaiter().GetResult();
+        => ExecuteAsync<TResult>(expression).GetAwaiter().GetResult()!;
 
-    public virtual async Task<TResult> ExecuteAsync<TResult>(Expression expression)
+    public virtual async Task<TResult?> ExecuteAsync<TResult>(Expression expression)
     {
         if (ProviderExecutor == null) { throw new InvalidOperationException("ProviderExecutor is not set."); }
         var kql = TranslateToKQL(expression);
         try
         {
+            if (PreExecute != null)
+            {
+                kql = PreExecute(this, kql);
+            }
             return await ProviderExecutor.ExecuteAsync<TResult>(kql, DefaultDbName);
         }
         catch (Exception ex) 
@@ -83,14 +90,15 @@ public class LinqToKqlProvider<T> : ILinqToKqlProvider<T>
             ProviderExecutor,
             Translator.Config,
             DefaultDbName,
-            ShouldRetry
+            ShouldRetry,
+            PreExecute
         );
     }
 
     public virtual async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
         var results = await ExecuteAsync<List<T>>(Expression);
-        foreach (var result in results)
+        foreach (var result in results!)
         {
             yield return result;
         }
